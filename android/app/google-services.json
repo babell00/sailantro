@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "395316888728",
+    "project_id": "sailantro-d8a5e",
+    "storage_bucket": "sailantro-d8a5e.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:395316888728:android:f697a7589afa281945fced",
+        "android_client_info": {
+          "package_name": "com.example.sailantro"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDTHc0yJJ0eM_bUYMW7LJ0dNRAHvhjfYEA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:395316888728:android:8b11d447f392ad5345fced",
+        "android_client_info": {
+          "package_name": "com.sailantro"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDTHc0yJJ0eM_bUYMW7LJ0dNRAHvhjfYEA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
