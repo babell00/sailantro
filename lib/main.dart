@@ -2,6 +2,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:sailantro/features/auth/presentation/login_page.dart';
 import 'package:sailantro/firebase_options.dart';
+import 'package:sailantro/themes/dark_mode.dart';
 import 'package:sailantro/themes/light_mode.dart';
 
 void main() async{
@@ -20,6 +21,8 @@ void main() async{
        debugShowCheckedModeBanner: false,
        home: const LoginPage(),
        theme: lightMode,
+       darkTheme: darkMode,
+         themeMode: ThemeMode.light
      );
    }
  }
