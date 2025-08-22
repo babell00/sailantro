@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../../../core/router/routes.dart';
 import '../components/auth_button.dart';
 import '../components/auth_text_field.dart';
 import '../cubits/auth_cubit.dart';
 
 class LoginPage extends StatefulWidget {
-  final void Function()? togglePages;
 
-  const LoginPage({super.key, required this.togglePages});
+  const LoginPage({super.key});
 
   @override
   State<LoginPage> createState() => _LoginPageState();
@@ -100,7 +101,9 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                   ),
                   GestureDetector(
-                    onTap: widget.togglePages,
+                    onTap: (){
+                      context.go(RoutePaths.authRegister);
+                    },
                     child: Text(
                       " Register now",
                       style: TextStyle(

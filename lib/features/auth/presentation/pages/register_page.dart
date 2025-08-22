@@ -1,15 +1,16 @@
 import 'package:email_validator/email_validator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:sailantro/features/auth/presentation/cubits/auth_cubit.dart';
 
+import '../../../../core/router/routes.dart';
 import '../components/auth_button.dart';
 import '../components/auth_text_field.dart';
 
 class RegisterPage extends StatefulWidget {
-  final void Function()? togglePages;
 
-  const RegisterPage({super.key, this.togglePages});
+  const RegisterPage({super.key});
 
   @override
   State<RegisterPage> createState() => _RegisterPageState();
@@ -130,7 +131,9 @@ class _RegisterPageState extends State<RegisterPage> {
                     ),
                   ),
                   GestureDetector(
-                    onTap: widget.togglePages,
+                    onTap: (){
+                      context.go(RoutePaths.authLogin);
+                    },
                     child: Text(
                       " Login now",
                       style: TextStyle(
