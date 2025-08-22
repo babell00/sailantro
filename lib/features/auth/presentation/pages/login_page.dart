@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'components/auth_login_button.dart';
-import 'components/auth_text_field.dart';
+import '../components/auth_button.dart';
+import '../components/auth_text_field.dart';
+import '../cubits/auth_cubit.dart';
 
 class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
+  final void Function()? togglePages;
+
+  const LoginPage({super.key, required this.togglePages});
 
   @override
   State<LoginPage> createState() => _LoginPageState();
@@ -13,6 +17,21 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
+
+  void login() {
+    final String email = emailController.text.trim().toLowerCase();
+    final String password = passwordController.text.trim();
+
+    final authCubit = context.read<AuthCubit>();
+
+    if (email.isNotEmpty && password.isNotEmpty) {
+      authCubit.login(email, password);
+    } else {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Please complete all fields!")));
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -48,6 +67,7 @@ class _LoginPageState extends State<LoginPage> {
                 controller: emailController,
                 hintText: "Email",
                 obscureText: false,
+                autocorrect: false,
               ),
               const SizedBox(height: 10),
               AuthTextField(
@@ -69,7 +89,8 @@ class _LoginPageState extends State<LoginPage> {
                 ],
               ),
               const SizedBox(height: 15),
-              AuthLoginButton(text: "LOGIN", onTap: () {}),
+              AuthButton(text: "LOGIN", onTap: login),
+              const SizedBox(height: 25),
               Row(
                 children: [
                   Text(
@@ -78,11 +99,14 @@ class _LoginPageState extends State<LoginPage> {
                       color: Theme.of(context).colorScheme.primary,
                     ),
                   ),
-                  Text(
-                    " Register now",
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.primary,
-                      fontWeight: FontWeight.bold,
+                  GestureDetector(
+                    onTap: widget.togglePages,
+                    child: Text(
+                      " Register now",
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.primary,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ],

@@ -4,12 +4,14 @@ class AuthTextField extends StatelessWidget {
   final TextEditingController controller;
   final String hintText;
   final bool obscureText;
+  final bool autocorrect;
 
   const AuthTextField({
     super.key,
     required this.controller,
     required this.hintText,
     required this.obscureText,
+    this.autocorrect = true,
   });
 
   @override
@@ -17,6 +19,7 @@ class AuthTextField extends StatelessWidget {
     return TextField(
       controller: controller,
       obscureText: obscureText,
+      autocorrect: autocorrect,
       decoration: InputDecoration(
         // border when unselected
         enabledBorder: OutlineInputBorder(
