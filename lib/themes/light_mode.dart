@@ -5,7 +5,8 @@ const _boatBlue   = Color(0xFF0E5AA7); // hull / primary
 const _seaCyan = Color(0xFF92D3F5); // waves / secondary
 const _sunYellow = Color(0xFFECBF4C); // sun / tertiary
 const _sailWhite  = Color(0xFFFFFFFF); // sails / surfaces
-const _foam       = Color(0xFFECF7FF); // bg foam
+const _foam       = Color(0xFFCAE2F6); // bg foam
+
 const _deepNavy   = Color(0xFF0B2942); // on-colors, headings
 const _reefCoral  = Color(0xFFFF6B6B); // errors
 
