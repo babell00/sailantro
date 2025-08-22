@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:lottie/lottie.dart';
 
 import '../../../../core/router/routes.dart';
 import '../components/auth_button.dart';
 import '../components/auth_text_field.dart';
 import '../cubits/auth_cubit.dart';
+import '../cubits/auth_state.dart';
 
 class LoginPage extends StatefulWidget {
-
   const LoginPage({super.key});
 
   @override
@@ -36,6 +37,48 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
+    return BlocConsumer<AuthCubit, AuthState>(
+      builder: (BuildContext context, state) {
+        final isLoading = state is AuthLoading;
+        return Stack(
+          children: [
+            _LoginForm(
+              emailController: emailController,
+              passwordController: passwordController,
+              onLogin: login,
+            ),
+            if (isLoading)
+              Container(
+                color: Colors.black.withOpacity(0.3),
+                child: const Center(child: CircularProgressIndicator()),
+              ),
+          ],
+        );
+      },
+      listener: (BuildContext context, state) {
+        if (state is AuthError) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(state.message)));
+        }
+      },
+    );
+  }
+}
+
+class _LoginForm extends StatelessWidget {
+  final TextEditingController emailController;
+  final TextEditingController passwordController;
+  final VoidCallback onLogin;
+
+  const _LoginForm({
+    required this.emailController,
+    required this.passwordController,
+    required this.onLogin,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       body: Center(
         child: Padding(
@@ -43,10 +86,14 @@ class _LoginPageState extends State<LoginPage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                Icons.lock_open,
-                size: 80,
-                color: Theme.of(context).colorScheme.primary,
+              Semantics(
+                label: 'Animated sailing boat',
+                child: Lottie.asset(
+                  'assets/lottie/swinging_boat.json',
+                  height: 200,
+                  fit: BoxFit.contain,
+                  repeat: true,
+                ),
               ),
               const SizedBox(height: 25),
               Text(
@@ -90,7 +137,7 @@ class _LoginPageState extends State<LoginPage> {
                 ],
               ),
               const SizedBox(height: 15),
-              AuthButton(text: "LOGIN", onTap: login),
+              AuthButton(text: "LOGIN", onTap: onLogin),
               const SizedBox(height: 25),
               Row(
                 children: [
@@ -101,7 +148,7 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                   ),
                   GestureDetector(
-                    onTap: (){
+                    onTap: () {
                       context.go(RoutePaths.authRegister);
                     },
                     child: Text(

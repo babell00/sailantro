@@ -2,6 +2,7 @@ import 'package:email_validator/email_validator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:lottie/lottie.dart';
 import 'package:sailantro/features/auth/presentation/cubits/auth_cubit.dart';
 
 import '../../../../core/router/routes.dart';
@@ -9,7 +10,6 @@ import '../components/auth_button.dart';
 import '../components/auth_text_field.dart';
 
 class RegisterPage extends StatefulWidget {
-
   const RegisterPage({super.key});
 
   @override
@@ -79,10 +79,14 @@ class _RegisterPageState extends State<RegisterPage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                Icons.lock_open,
-                size: 80,
-                color: Theme.of(context).colorScheme.primary,
+              Semantics(
+                label: 'Animated sailing boat',
+                child: Lottie.asset(
+                  'assets/lottie/swinging_boat.json',
+                  height: 200,
+                  fit: BoxFit.contain,
+                  repeat: true,
+                ),
               ),
               const SizedBox(height: 25),
               Text(
@@ -131,7 +135,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     ),
                   ),
                   GestureDetector(
-                    onTap: (){
+                    onTap: () {
                       context.go(RoutePaths.authLogin);
                     },
                     child: Text(

@@ -1,43 +1,49 @@
 import 'package:flutter/material.dart';
 
-/// Sailantro — Light Nautical Theme
-/// Palette: Navy (primary), Teal (secondary), Sand (accent), Foam (surface)
-const _navy = Color(0xFF0C2A43);
-const _teal = Color(0xFF0FA3B1);
-const _sand = Color(0xFFFFB13B);
-const _foam = Color(0xFFE7F7FA);
+/// Lottie-matched Nautical Palette
+const _boatBlue   = Color(0xFF0E5AA7); // hull / primary
+const _seaCyan = Color(0xFF92D3F5); // waves / secondary
+const _sunYellow = Color(0xFFECBF4C); // sun / tertiary
+const _sailWhite  = Color(0xFFFFFFFF); // sails / surfaces
+const _foam       = Color(0xFFECF7FF); // bg foam
+const _deepNavy   = Color(0xFF0B2942); // on-colors, headings
+const _reefCoral  = Color(0xFFFF6B6B); // errors
 
 final lightMode = ThemeData(
   useMaterial3: true,
-  colorScheme: const ColorScheme(
+  colorScheme: ColorScheme.fromSeed(
+    seedColor: _boatBlue,
     brightness: Brightness.light,
-    primary: _navy,
+  ).copyWith(
+    primary: _boatBlue,
     onPrimary: Colors.white,
-    secondary: _teal,
-    onSecondary: Colors.white,
-    tertiary: _sand,
-    onTertiary: Colors.white,
-    surface: Colors.white,
-    onSurface: Color(0xFF0C2A43),
-    error: Color(0xFFE63946),
+    secondary: _seaCyan,
+    onSecondary: _deepNavy,
+    tertiary: _sunYellow,
+    onTertiary: _deepNavy,
+    surface: _sailWhite,
+    onSurface: _deepNavy,
+    background: _foam,
+    onBackground: _deepNavy,
+    error: _reefCoral,
     onError: Colors.white,
-    primaryContainer: Color(0xFF1A415F),
-    onPrimaryContainer: Colors.white,
-    secondaryContainer: Color(0xFFBCE9EE),
-    onSecondaryContainer: Color(0xFF0C2A43),
-    tertiaryContainer: Color(0xFFFFE2B8),
-    onTertiaryContainer: Color(0xFF5B3B00),
-    outline: Color(0xFF8EA3B5),
-    outlineVariant: Color(0xFFE1E8EF),
-    scrim: Colors.black54,
-    shadow: Colors.black12,
-    inversePrimary: Color(0xFFB3CCE5),
-    inverseSurface: Color(0xFF0F2130),
+    // nice containers / variants for cards & inputs
+    surfaceVariant: const Color(0xFFF3F8FD),
+    primaryContainer: _boatBlue.withOpacity(.12),
+    secondaryContainer: _seaCyan.withOpacity(.15),
+    tertiaryContainer: _sunYellow.withOpacity(.18),
+    outline: _deepNavy.withOpacity(.20),
+    outlineVariant: const Color(0xFFE2EAF4),
+    inversePrimary: _seaCyan,
+    inverseSurface: const Color(0xFF0F2130),
     onInverseSurface: Colors.white,
+    shadow: Colors.black12,
+    scrim: Colors.black54,
   ),
+
   scaffoldBackgroundColor: _foam,
 
-  // Typography tuned for iOS look (larger titles, heavy weights on headlines)
+  // iOS-leaning typography with strong titles (Duolingo vibe)
   textTheme: Typography.blackCupertino.copyWith(
     titleLarge: const TextStyle(fontWeight: FontWeight.w800, letterSpacing: .2),
     titleMedium: const TextStyle(fontWeight: FontWeight.w700),
@@ -46,27 +52,28 @@ final lightMode = ThemeData(
 
   appBarTheme: const AppBarTheme(
     backgroundColor: _foam,
-    foregroundColor: _navy,
+    foregroundColor: _deepNavy,
     elevation: 0,
     centerTitle: true,
   ),
 
-
   inputDecorationTheme: InputDecorationTheme(
     filled: true,
-    fillColor: Colors.grey.shade100,
+    fillColor: const Color(0xFFF6FAFF),
     contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
     border: OutlineInputBorder(
       borderRadius: BorderRadius.circular(14),
       borderSide: BorderSide.none,
     ),
-    prefixIconColor: _navy,
+    prefixIconColor: _boatBlue,
   ),
 
   elevatedButtonTheme: ElevatedButtonThemeData(
     style: ElevatedButton.styleFrom(
       minimumSize: const Size.fromHeight(52),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+      backgroundColor: _boatBlue,
+      foregroundColor: Colors.white,
       textStyle: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800, letterSpacing: .2),
     ),
   ),
@@ -74,6 +81,8 @@ final lightMode = ThemeData(
   filledButtonTheme: FilledButtonThemeData(
     style: FilledButton.styleFrom(
       minimumSize: const Size.fromHeight(48),
+      backgroundColor: _seaCyan,
+      foregroundColor: _deepNavy,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       textStyle: const TextStyle(fontWeight: FontWeight.w700),
     ),
@@ -82,7 +91,7 @@ final lightMode = ThemeData(
   snackBarTheme: SnackBarThemeData(
     behavior: SnackBarBehavior.floating,
     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-    backgroundColor: _teal,
+    backgroundColor: _boatBlue,
     contentTextStyle: const TextStyle(color: Colors.white),
   ),
 );
