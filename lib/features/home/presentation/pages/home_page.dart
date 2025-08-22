@@ -1,3 +1,4 @@
+import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lottie/lottie.dart';
@@ -24,7 +25,7 @@ class HomePage extends StatelessWidget {
       ),
       body: Center(
         child: Semantics(
-          label: 'Animated sailing boat',
+          label: 'Animated turtle',
           child: Lottie.asset(
             'assets/lottie/turtle.json',
             height: 500,
@@ -33,6 +34,15 @@ class HomePage extends StatelessWidget {
           ),
         ),
       ),
+      bottomNavigationBar: CurvedNavigationBar(
+          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+          color: Theme.of(context).colorScheme.secondary,
+          items: [
+        Icon(Icons.home),
+        Icon(Icons.favorite),
+        Icon(Icons.wine_bar),
+        Icon(Icons.settings),
+      ]),
     );
   }
 }
