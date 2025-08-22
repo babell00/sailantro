@@ -8,6 +8,7 @@ import 'package:sailantro/features/auth/presentation/cubits/auth_cubit.dart';
 import '../../../../core/router/routes.dart';
 import '../components/auth_button.dart';
 import '../components/auth_text_field.dart';
+import '../cubits/auth_state.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -72,6 +73,54 @@ class _RegisterPageState extends State<RegisterPage> {
 
   @override
   Widget build(BuildContext context) {
+    return BlocConsumer<AuthCubit, AuthState>(
+      builder: (BuildContext context, state) {
+        final isLoading = state is AuthLoading;
+        return Stack(
+          children: [
+            _RegistrationForm(
+              nameController: nameController,
+              emailController: emailController,
+              passwordController: passwordController,
+              confirmPasswordController: confirmPasswordController,
+              onRegister: register,
+            ),
+            if (isLoading)
+              Container(
+                color: Colors.black.withOpacity(0.3),
+                child: const Center(child: CircularProgressIndicator()),
+              ),
+          ],
+        );
+      },
+      listener: (BuildContext context, state) {
+        if (state is AuthError) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(state.message)));
+        }
+      },
+    );
+  }
+}
+
+class _RegistrationForm extends StatelessWidget {
+  final TextEditingController nameController;
+  final TextEditingController emailController;
+  final TextEditingController passwordController;
+  final TextEditingController confirmPasswordController;
+  final VoidCallback onRegister;
+
+  const _RegistrationForm({
+    required this.nameController,
+    required this.emailController,
+    required this.passwordController,
+    required this.confirmPasswordController,
+    required this.onRegister,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       body: Center(
         child: Padding(
@@ -124,7 +173,7 @@ class _RegisterPageState extends State<RegisterPage> {
               ),
 
               const SizedBox(height: 25),
-              AuthButton(text: "SING UP ", onTap: register),
+              AuthButton(text: "SING UP ", onTap: onRegister),
               const SizedBox(height: 25),
               Row(
                 children: [
