@@ -120,14 +120,14 @@ class _LoginForm extends StatelessWidget {
               const SizedBox(height: 25),
               AuthTextField(
                 controller: emailController,
-                hintText: "Email",
+                labelText: "Email",
                 obscureText: false,
                 autocorrect: false,
               ),
               const SizedBox(height: 10),
               AuthTextField(
                 controller: passwordController,
-                hintText: "Password",
+                labelText: "Password",
                 obscureText: true,
               ),
               const SizedBox(height: 10),

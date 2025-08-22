@@ -8,8 +8,6 @@ import 'package:sailantro/themes/dark_mode.dart';
 import 'package:sailantro/themes/light_mode.dart';
 
 import 'core/router/app_router.dart';
-import 'features/auth/presentation/components/auth_progress_indicator.dart';
-import 'features/home/presentation/pages/home_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

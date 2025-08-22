@@ -1,7 +1,6 @@
 import 'package:sailantro/core/router/routes.dart';
 import 'package:sailantro/features/auth/presentation/pages/register_page.dart';
 
-import '../../features/auth/presentation/components/auth_progress_indicator.dart';
 import '../../features/auth/presentation/cubits/auth_cubit.dart';
 import '../../features/auth/presentation/cubits/auth_state.dart';
 import '../../features/auth/presentation/pages/login_page.dart';
