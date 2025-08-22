@@ -131,17 +131,24 @@ class _RegistrationForm extends StatelessWidget {
               Semantics(
                 label: 'Animated sailing boat',
                 child: Lottie.asset(
-                  'assets/lottie/swinging_boat.json',
+                  'assets/lottie/swinging_boat_2.json',
                   height: 200,
                   fit: BoxFit.contain,
                   repeat: true,
                 ),
               ),
-              const SizedBox(height: 25),
+              const SizedBox(height: 15),
+              Text(
+                "S A I L I N G O",
+                style: TextStyle(
+                  fontSize: 24,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+              ),
               Text(
                 "Let's create an account for you",
                 style: TextStyle(
-                  fontSize: 24,
+                  fontSize: 16,
                   color: Theme.of(context).colorScheme.primary,
                 ),
               ),
