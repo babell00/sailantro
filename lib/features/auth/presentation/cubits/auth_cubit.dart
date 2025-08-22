@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sailantro/features/auth/domain/models/app_user.dart';
 import 'package:sailantro/features/auth/domain/repository/auth_repository.dart';
 import 'package:sailantro/features/auth/presentation/cubits/auth_state.dart';
+import '../../domain/errors/auth_failure.dart';
 
 class AuthCubit extends Cubit<AuthState> {
   final AuthRepository authRepository;
@@ -12,10 +13,11 @@ class AuthCubit extends Cubit<AuthState> {
 
   AppUser? get currentUser => _currentUser;
 
-  void checkAuth() async {
+  /// Called once on app start
+  Future<void> checkAuth() async {
     debugPrint('Checking current user auth status...');
     emit(AuthLoading());
-    final AppUser? user = await authRepository.getCurrentUser();
+    final user = await authRepository.getCurrentUser();
     if (user != null) {
       debugPrint('User found: ${user.uid}');
       _currentUser = user;
@@ -31,41 +33,36 @@ class AuthCubit extends Cubit<AuthState> {
     try {
       emit(AuthLoading());
       final user = await authRepository.loginWithEmailPassword(email, password);
-      if (user != null) {
-        debugPrint('Login successful: ${user.uid}');
-        _currentUser = user;
-        emit(Authenticated(user));
-      } else {
-        debugPrint('Login failed: null user returned');
-        emit(Unauthenticated());
+      if (user == null) {
+        emit(AuthError('Login failed. Please try again.'));
+        return;
       }
-    } catch (e, stackTrace) {
-      debugPrint('Login error: $e');
-      debugPrint(stackTrace.toString());
-
-      emit(AuthError("Login failed. Please check your email and password."));
+      debugPrint('Login successful: ${user.uid}');
+      _currentUser = user;
+      emit(Authenticated(user));
+    } catch (e, st) {
+      debugPrint('Login error: $e\n$st');
+      final msg = e is AuthFailure ? e.message : 'Login failed. Please try again.';
+      emit(AuthError(msg));
     }
-  }
+  } // ← END login()
 
   Future<void> register(String name, String email, String password) async {
     debugPrint('Starting registration for: $email');
     try {
       emit(AuthLoading());
-      final user = await authRepository.registerWithEmailPassword(
-        name,
-        email,
-        password,
-      );
-      if (user != null) {
-        debugPrint('[Auth] Registration successful: ${user.uid}');
-        _currentUser = user;
-        emit(Authenticated(user));
-      } else {
-        debugPrint('Registration failed: null user returned');
-        emit(Unauthenticated());
+      final user = await authRepository.registerWithEmailPassword(name, email, password);
+      if (user == null) {
+        emit(AuthError('Registration failed. Please try again.'));
+        return;
       }
-    } catch (e) {
-      emit(AuthError(e.toString()));
+      debugPrint('[Auth] Registration successful: ${user.uid}');
+      _currentUser = user;
+      emit(Authenticated(user));
+    } catch (e, st) {
+      debugPrint('Register error: $e\n$st');
+      final msg = e is AuthFailure ? e.message : 'Registration failed. Please try again.';
+      emit(AuthError(msg));
     }
   }
 
@@ -75,11 +72,12 @@ class AuthCubit extends Cubit<AuthState> {
     try {
       await authRepository.logout();
       debugPrint('Logout successful');
+      _currentUser = null;
       emit(Unauthenticated());
-    } catch (e, stackTrace) {
-      debugPrint('Logout error: $e');
-      debugPrint(stackTrace.toString());
-      emit(AuthError("Logout failed. Please try again."));
+    } catch (e, st) {
+      debugPrint('Logout error: $e\n$st');
+      final msg = e is AuthFailure ? e.message : 'Logout failed. Please try again.';
+      emit(AuthError(msg));
     }
   }
 
@@ -88,27 +86,25 @@ class AuthCubit extends Cubit<AuthState> {
     try {
       await authRepository.sendPasswordResetEmail(email);
       debugPrint('Password reset email sent successfully');
-      return "Password reset email sent. Please check your inbox.";
-    } catch (e, stackTrace) {
-      debugPrint('Password reset error: $e');
-      debugPrint(stackTrace.toString());
-      return "Failed to send password reset email. Please try again.";
+      return 'Password reset email sent. Please check your inbox.';
+    } catch (e, st) {
+      debugPrint('Password reset error: $e\n$st');
+      return e is AuthFailure ? e.message : 'Failed to send reset email. Please try again.';
     }
   }
 
   Future<void> delete() async {
     debugPrint('Attempting to delete user account...');
-
     try {
       emit(AuthLoading());
       await authRepository.deleteAccount();
       debugPrint('Account deleted successfully');
+      _currentUser = null;
       emit(Unauthenticated());
-    } catch (e, stackTrace) {
-      debugPrint('Account deletion error: $e');
-      debugPrint(stackTrace.toString());
-      emit(AuthError("Account deletion failed. Please try again."));
+    } catch (e, st) {
+      debugPrint('Account deletion error: $e\n$st');
+      final msg = e is AuthFailure ? e.message : 'Account deletion failed. Please try again.';
+      emit(AuthError(msg));
     }
   }
-
 }
