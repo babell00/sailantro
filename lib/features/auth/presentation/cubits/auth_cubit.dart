@@ -44,7 +44,6 @@ class AuthCubit extends Cubit<AuthState> {
       debugPrint(stackTrace.toString());
 
       emit(AuthError("Login failed. Please check your email and password."));
-      emit(Unauthenticated());
     }
   }
 
@@ -67,7 +66,6 @@ class AuthCubit extends Cubit<AuthState> {
       }
     } catch (e) {
       emit(AuthError(e.toString()));
-      emit(Unauthenticated());
     }
   }
 
@@ -82,7 +80,6 @@ class AuthCubit extends Cubit<AuthState> {
       debugPrint('Logout error: $e');
       debugPrint(stackTrace.toString());
       emit(AuthError("Logout failed. Please try again."));
-      emit(Unauthenticated());
     }
   }
 
@@ -111,7 +108,6 @@ class AuthCubit extends Cubit<AuthState> {
       debugPrint('Account deletion error: $e');
       debugPrint(stackTrace.toString());
       emit(AuthError("Account deletion failed. Please try again."));
-      emit(Unauthenticated());
     }
   }
 

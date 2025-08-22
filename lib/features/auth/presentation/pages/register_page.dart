@@ -87,7 +87,7 @@ class _RegisterPageState extends State<RegisterPage> {
             ),
             if (isLoading)
               Container(
-                color: Colors.black.withOpacity(0.3),
+                color: Colors.black.withValues(alpha: 0.3),
                 child: const Center(child: CircularProgressIndicator()),
               ),
           ],
@@ -173,7 +173,7 @@ class _RegistrationForm extends StatelessWidget {
               ),
 
               const SizedBox(height: 25),
-              AuthButton(text: "SING UP ", onTap: onRegister),
+              AuthButton(text: "SIGN UP", onTap: onRegister),
               const SizedBox(height: 25),
               Row(
                 children: [
