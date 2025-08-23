@@ -35,14 +35,16 @@ class HomePage extends StatelessWidget {
         ),
       ),
       bottomNavigationBar: CurvedNavigationBar(
-          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-          color: Theme.of(context).colorScheme.secondary,
-          items: [
-        Icon(Icons.home),
-        Icon(Icons.favorite),
-        Icon(Icons.wine_bar),
-        Icon(Icons.settings),
-      ]),
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        color: Theme.of(context).colorScheme.secondary,
+        animationDuration: Duration(milliseconds: 300),
+        items: [
+          Icon(Icons.home, color: Colors.white),
+          Icon(Icons.favorite, color: Colors.white),
+          Icon(Icons.wine_bar, color: Colors.white),
+          Icon(Icons.settings, color: Colors.white),
+        ],
+      ),
     );
   }
 }

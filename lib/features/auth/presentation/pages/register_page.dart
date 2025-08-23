@@ -76,21 +76,24 @@ class _RegisterPageState extends State<RegisterPage> {
     return BlocConsumer<AuthCubit, AuthState>(
       builder: (BuildContext context, state) {
         final isLoading = state is AuthLoading;
-        return Stack(
-          children: [
-            _RegistrationForm(
-              nameController: nameController,
-              emailController: emailController,
-              passwordController: passwordController,
-              confirmPasswordController: confirmPasswordController,
-              onRegister: register,
-            ),
-            if (isLoading)
-              Container(
-                color: Colors.black.withValues(alpha: 0.3),
-                child: const Center(child: CircularProgressIndicator()),
+        return Scaffold(
+          resizeToAvoidBottomInset: true,
+          body: Stack(
+            children: [
+              _RegistrationForm(
+                nameController: nameController,
+                emailController: emailController,
+                passwordController: passwordController,
+                confirmPasswordController: confirmPasswordController,
+                onRegister: register,
               ),
-          ],
+              if (isLoading)
+                Container(
+                  color: Colors.black.withValues(alpha: 0.3),
+                  child: const Center(child: CircularProgressIndicator()),
+                ),
+            ],
+          ),
         );
       },
       listener: (BuildContext context, state) {
@@ -121,13 +124,15 @@ class _RegistrationForm extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Center(
-        child: Padding(
+    return SafeArea(
+      child: GestureDetector(
+        onTap: () => FocusScope.of(context).unfocus(),
+        child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 25.0),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              SizedBox(height: 50,),
               Semantics(
                 label: 'Animated sailing boat',
                 child: Lottie.asset(

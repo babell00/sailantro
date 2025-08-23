@@ -47,19 +47,22 @@ class _LoginPageState extends State<LoginPage> {
     return BlocConsumer<AuthCubit, AuthState>(
       builder: (BuildContext context, state) {
         final isLoading = state is AuthLoading;
-        return Stack(
-          children: [
-            _LoginForm(
-              emailController: emailController,
-              passwordController: passwordController,
-              onLogin: login,
-            ),
-            if (isLoading)
-              Container(
-                color: Colors.black.withValues(alpha: 0.3),
-                child: const Center(child: CircularProgressIndicator()),
+        return Scaffold(
+          resizeToAvoidBottomInset: true,
+          body: Stack(
+            children: [
+              _LoginForm(
+                emailController: emailController,
+                passwordController: passwordController,
+                onLogin: login,
               ),
-          ],
+              if (isLoading)
+                Container(
+                  color: Colors.black.withValues(alpha: 0.3),
+                  child: const Center(child: CircularProgressIndicator()),
+                ),
+            ],
+          ),
         );
       },
       listener: (BuildContext context, state) {
@@ -86,13 +89,15 @@ class _LoginForm extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Center(
-        child: Padding(
+    return SafeArea(
+      child: GestureDetector(
+        onTap: () => FocusScope.of(context).unfocus(),
+        child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 25.0),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              SizedBox(height: 50,),
               Semantics(
                 label: 'Animated sailing boat',
                 child: Lottie.asset(
