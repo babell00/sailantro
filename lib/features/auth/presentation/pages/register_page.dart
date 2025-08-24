@@ -23,7 +23,7 @@ class _RegisterPageState extends State<RegisterPage> {
   final passwordController = TextEditingController();
   final confirmPasswordController = TextEditingController();
 
-  bool isValidEmail(String email) {
+  bool _isValidEmail(String email) {
     return EmailValidator.validate(email.trim());
   }
 
@@ -45,7 +45,7 @@ class _RegisterPageState extends State<RegisterPage> {
       return;
     }
 
-    if (!isValidEmail(email)) {
+    if (!_isValidEmail(email)) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Please enter a valid email address.")),
       );

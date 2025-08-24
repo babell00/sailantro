@@ -1,3 +1,4 @@
+import 'package:email_validator/email_validator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -19,6 +20,30 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
+  bool _isButtonEnabled = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Add listeners to text controllers
+    emailController.addListener(_updateButtonState);
+    passwordController.addListener(_updateButtonState);
+  }
+
+  void _updateButtonState() {
+    final email = emailController.text.trim();
+    final password = passwordController.text.trim();
+    final isEnabled = email.isNotEmpty && password.isNotEmpty && _isValidEmail(email);
+    if (_isButtonEnabled != isEnabled) {
+      setState(() {
+        _isButtonEnabled = isEnabled;
+      });
+    }
+  }
+
+  bool _isValidEmail(String email) {
+    return EmailValidator.validate(email.trim());
+  }
 
   void login() {
     final String email = emailController.text.trim().toLowerCase();
@@ -37,6 +62,8 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   void dispose() {
+    emailController.removeListener(_updateButtonState);
+    passwordController.removeListener(_updateButtonState);
     emailController.dispose();
     passwordController.dispose();
     super.dispose();
@@ -55,6 +82,7 @@ class _LoginPageState extends State<LoginPage> {
                 emailController: emailController,
                 passwordController: passwordController,
                 onLogin: login,
+                isButtonEnabled: _isButtonEnabled,
               ),
               if (isLoading)
                 Container(
@@ -80,11 +108,13 @@ class _LoginForm extends StatelessWidget {
   final TextEditingController emailController;
   final TextEditingController passwordController;
   final VoidCallback onLogin;
+  final bool isButtonEnabled;
 
   const _LoginForm({
     required this.emailController,
     required this.passwordController,
     required this.onLogin,
+    required this.isButtonEnabled,
   });
 
   @override
@@ -97,7 +127,7 @@ class _LoginForm extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              SizedBox(height: 50,),
+              SizedBox(height: 50),
               Semantics(
                 label: 'Animated sailing boat',
                 child: Lottie.asset(
@@ -154,7 +184,10 @@ class _LoginForm extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 15),
-              AuthButton(text: "LOGIN", onTap: onLogin),
+              AuthButton(
+                text: "LOGIN",
+                onTap: isButtonEnabled ? onLogin : null,
+              ),
               const SizedBox(height: 25),
               Row(
                 children: [
