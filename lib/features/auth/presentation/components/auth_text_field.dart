@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-class AuthTextField extends StatelessWidget {
+class AuthTextField extends StatefulWidget {
   final TextEditingController controller;
   final String labelText;
   final bool obscureText;
@@ -25,21 +25,46 @@ class AuthTextField extends StatelessWidget {
   });
 
   @override
+  State<AuthTextField> createState() => _AuthTextFieldState();
+}
+
+class _AuthTextFieldState extends State<AuthTextField> {
+  late bool _obscure;
+
+  @override
+  void initState() {
+    super.initState();
+    _obscure = widget.obscureText;
+  }
+
+  @override
   Widget build(BuildContext context) {
     return TextFormField(
-      controller: controller,
-      obscureText: obscureText,
-      autocorrect: autocorrect,
-      keyboardType: keyboardType,
-      validator: validator,
-      textInputAction: textInputAction ?? (obscureText ? TextInputAction.done : TextInputAction.next),
-      onFieldSubmitted: onSubmitted,
-      autofillHints: obscureText
-          ? const [AutofillHints.password]
-          : const [AutofillHints.email],
+      controller: widget.controller,
+      obscureText: _obscure,
+      autocorrect: widget.autocorrect,
+      keyboardType: widget.keyboardType,
+      validator: widget.validator,
+      textInputAction: widget.textInputAction ??
+          (widget.obscureText ? TextInputAction.done : TextInputAction.next),
+      onFieldSubmitted: widget.onSubmitted,
+      autofillHints:
+      widget.obscureText ? const [AutofillHints.password] : null,
       decoration: InputDecoration(
-        hintText: labelText,
-        prefixIcon: prefixIcon,
+        hintText: widget.labelText,
+        prefixIcon: widget.prefixIcon,
+        suffixIcon: widget.obscureText
+            ? IconButton(
+          icon: Icon(
+            _obscure ? Icons.visibility_off : Icons.visibility,
+          ),
+          onPressed: () {
+            setState(() {
+              _obscure = !_obscure;
+            });
+          },
+        )
+            : null,
       ),
     );
   }
