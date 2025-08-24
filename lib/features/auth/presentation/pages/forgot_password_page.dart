@@ -9,25 +9,23 @@ import '../components/auth_text_field.dart';
 import '../cubits/auth_cubit.dart';
 import '../cubits/auth_state.dart';
 
-class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
+class ForgotPasswordPage extends StatefulWidget {
+  const ForgotPasswordPage({super.key});
 
   @override
-  State<LoginPage> createState() => _LoginPageState();
+  State<ForgotPasswordPage> createState() => _ForgotPasswordPageState();
 }
 
-class _LoginPageState extends State<LoginPage> {
+class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
   final emailController = TextEditingController();
-  final passwordController = TextEditingController();
 
-  void login() {
+  void rest() {
     final String email = emailController.text.trim().toLowerCase();
-    final String password = passwordController.text.trim();
 
     final authCubit = context.read<AuthCubit>();
 
-    if (email.isNotEmpty && password.isNotEmpty) {
-      authCubit.login(email, password);
+    if (email.isNotEmpty) {
+      // authCubit.login(email, password);
     } else {
       ScaffoldMessenger.of(
         context,
@@ -38,7 +36,6 @@ class _LoginPageState extends State<LoginPage> {
   @override
   void dispose() {
     emailController.dispose();
-    passwordController.dispose();
     super.dispose();
   }
 
@@ -51,10 +48,9 @@ class _LoginPageState extends State<LoginPage> {
           resizeToAvoidBottomInset: true,
           body: Stack(
             children: [
-              _LoginForm(
+              _ForgotPasswordForm(
                 emailController: emailController,
-                passwordController: passwordController,
-                onLogin: login,
+                onRest: rest,
               ),
               if (isLoading)
                 Container(
@@ -76,15 +72,13 @@ class _LoginPageState extends State<LoginPage> {
   }
 }
 
-class _LoginForm extends StatelessWidget {
+class _ForgotPasswordForm extends StatelessWidget {
   final TextEditingController emailController;
-  final TextEditingController passwordController;
-  final VoidCallback onLogin;
+  final VoidCallback onRest;
 
-  const _LoginForm({
+  const _ForgotPasswordForm({
     required this.emailController,
-    required this.passwordController,
-    required this.onLogin,
+    required this.onRest,
   });
 
   @override
@@ -116,7 +110,7 @@ class _LoginForm extends StatelessWidget {
                 ),
               ),
               Text(
-                "Duolingo for sailing",
+                "Reset password",
                 style: TextStyle(
                   fontSize: 16,
                   color: Theme.of(context).colorScheme.primary,
@@ -129,47 +123,23 @@ class _LoginForm extends StatelessWidget {
                 obscureText: false,
                 autocorrect: false,
               ),
-              const SizedBox(height: 10),
-              AuthTextField(
-                controller: passwordController,
-                labelText: "Password",
-                obscureText: true,
-              ),
-              const SizedBox(height: 10),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  GestureDetector(
-                    onTap: () {
-                      context.go(RoutePaths.authForgotPassword);
-                    },
-                    child: Text(
-                      "Forgot Password?",
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.primary,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
               const SizedBox(height: 15),
-              AuthButton(text: "LOGIN", onTap: onLogin),
+              AuthButton(text: "RESET PASSWORD", onTap: onRest),
               const SizedBox(height: 25),
               Row(
                 children: [
                   Text(
-                    "Don't have an account?",
+                    "Already have an account?",
                     style: TextStyle(
                       color: Theme.of(context).colorScheme.primary,
                     ),
                   ),
                   GestureDetector(
                     onTap: () {
-                      context.go(RoutePaths.authRegister);
+                      context.go(RoutePaths.authLogin);
                     },
                     child: Text(
-                      " Register now",
+                      " Login now",
                       style: TextStyle(
                         color: Theme.of(context).colorScheme.primary,
                         fontWeight: FontWeight.bold,

@@ -1,4 +1,5 @@
 import 'package:sailantro/core/router/routes.dart';
+import 'package:sailantro/features/auth/presentation/pages/forgot_password_page.dart';
 import 'package:sailantro/features/auth/presentation/pages/register_page.dart';
 
 import '../../features/auth/presentation/cubits/auth_cubit.dart';
@@ -19,14 +20,26 @@ class AppRouter {
           path: RoutePaths.home,
           builder: (context, state) => const HomePage(),
         ),
-        GoRoute(path: RoutePaths.authLogin, builder: (context, state) => const LoginPage()),
-        GoRoute(path: RoutePaths.authRegister, builder: (context, state) => const RegisterPage()),
+        GoRoute(
+          path: RoutePaths.authLogin,
+          builder: (context, state) => const LoginPage(),
+        ),
+        GoRoute(
+          path: RoutePaths.authRegister,
+          builder: (context, state) => const RegisterPage(),
+        ),
+        GoRoute(
+          path: RoutePaths.authForgotPassword,
+          builder: (context, state) => const ForgotPasswordPage(),
+        ),
       ],
       redirect: (context, state) {
         final authState = authCubit.state;
 
-        final isAuthRoute = state.matchedLocation == RoutePaths.authLogin
-            || state.matchedLocation == RoutePaths.authRegister;
+        final isAuthRoute =
+            state.matchedLocation == RoutePaths.authLogin ||
+            state.matchedLocation == RoutePaths.authRegister ||
+            state.matchedLocation == RoutePaths.authForgotPassword;
 
         if (authState is Unauthenticated || authState is AuthError) {
           return isAuthRoute ? null : RoutePaths.authLogin;
