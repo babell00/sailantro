@@ -25,7 +25,10 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
     final authCubit = context.read<AuthCubit>();
 
     if (email.isNotEmpty) {
-      // authCubit.login(email, password);
+      authCubit.forgotPassword(email);
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Please check your email!")));
     } else {
       ScaffoldMessenger.of(
         context,
