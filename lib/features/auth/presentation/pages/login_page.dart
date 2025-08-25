@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:lottie/lottie.dart';
 
 import '../../../../core/router/routes.dart';
+import '../../../../core/utils/validators.dart';
 import '../components/auth_button.dart';
 import '../components/auth_text_field.dart';
 import '../cubits/auth_cubit.dart';
@@ -33,7 +34,7 @@ class _LoginPageState extends State<LoginPage> {
   void _updateButtonState() {
     final email = emailController.text.trim();
     final password = passwordController.text.trim();
-    final isEnabled = email.isNotEmpty && password.isNotEmpty && _isValidEmail(email);
+    final isEnabled = password.isNotEmpty && isValidEmail(email);
     if (_isButtonEnabled != isEnabled) {
       setState(() {
         _isButtonEnabled = isEnabled;
@@ -41,9 +42,6 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
-  bool _isValidEmail(String email) {
-    return EmailValidator.validate(email.trim());
-  }
 
   void login() {
     final String email = emailController.text.trim().toLowerCase();

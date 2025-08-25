@@ -6,6 +6,7 @@ import 'package:lottie/lottie.dart';
 import 'package:sailantro/features/auth/presentation/cubits/auth_cubit.dart';
 
 import '../../../../core/router/routes.dart';
+import '../../../../core/utils/validators.dart';
 import '../components/auth_button.dart';
 import '../components/auth_text_field.dart';
 import '../cubits/auth_state.dart';
@@ -22,9 +23,31 @@ class _RegisterPageState extends State<RegisterPage> {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
   final confirmPasswordController = TextEditingController();
+  bool _isButtonEnabled = false;
 
-  bool _isValidEmail(String email) {
-    return EmailValidator.validate(email.trim());
+  @override
+  void initState() {
+    super.initState();
+    // Add listeners to text controllers
+    nameController.addListener(_updateButtonState);
+    emailController.addListener(_updateButtonState);
+    passwordController.addListener(_updateButtonState);
+    confirmPasswordController.addListener(_updateButtonState);
+  }
+
+  void _updateButtonState() {
+    final name = nameController.text.trim();
+    final email = emailController.text.trim();
+    final password = passwordController.text.trim();
+    final confirmPassword = confirmPasswordController.text.trim();
+
+    final isEnabled = name.isNotEmpty && isValidEmail(email) &&
+        password.isNotEmpty && confirmPassword.isNotEmpty;
+    if (_isButtonEnabled != isEnabled) {
+      setState(() {
+        _isButtonEnabled = isEnabled;
+      });
+    }
   }
 
   void register() {
@@ -45,7 +68,7 @@ class _RegisterPageState extends State<RegisterPage> {
       return;
     }
 
-    if (!_isValidEmail(email)) {
+    if (!isValidEmail(email)) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Please enter a valid email address.")),
       );
@@ -86,6 +109,8 @@ class _RegisterPageState extends State<RegisterPage> {
                 passwordController: passwordController,
                 confirmPasswordController: confirmPasswordController,
                 onRegister: register,
+                isButtonEnabled: _isButtonEnabled,
+
               ),
               if (isLoading)
                 Container(
@@ -113,6 +138,8 @@ class _RegistrationForm extends StatelessWidget {
   final TextEditingController passwordController;
   final TextEditingController confirmPasswordController;
   final VoidCallback onRegister;
+  final bool isButtonEnabled;
+
 
   const _RegistrationForm({
     required this.nameController,
@@ -120,6 +147,8 @@ class _RegistrationForm extends StatelessWidget {
     required this.passwordController,
     required this.confirmPasswordController,
     required this.onRegister,
+    required this.isButtonEnabled,
+
   });
 
   @override
@@ -147,14 +176,20 @@ class _RegistrationForm extends StatelessWidget {
                 "S A I L I N G O",
                 style: TextStyle(
                   fontSize: 24,
-                  color: Theme.of(context).colorScheme.primary,
+                  color: Theme
+                      .of(context)
+                      .colorScheme
+                      .primary,
                 ),
               ),
               Text(
                 "Let's create an account for you",
                 style: TextStyle(
                   fontSize: 16,
-                  color: Theme.of(context).colorScheme.primary,
+                  color: Theme
+                      .of(context)
+                      .colorScheme
+                      .primary,
                 ),
               ),
               const SizedBox(height: 25),
@@ -185,14 +220,19 @@ class _RegistrationForm extends StatelessWidget {
               ),
 
               const SizedBox(height: 25),
-              AuthButton(text: "SIGN UP", onTap: onRegister),
+              AuthButton(text: "SIGN UP",
+                onTap: isButtonEnabled ? onRegister : null,
+              ),
               const SizedBox(height: 25),
               Row(
                 children: [
                   Text(
                     "Already have an account?",
                     style: TextStyle(
-                      color: Theme.of(context).colorScheme.primary,
+                      color: Theme
+                          .of(context)
+                          .colorScheme
+                          .primary,
                     ),
                   ),
                   GestureDetector(
@@ -202,7 +242,10 @@ class _RegistrationForm extends StatelessWidget {
                     child: Text(
                       " Login now",
                       style: TextStyle(
-                        color: Theme.of(context).colorScheme.primary,
+                        color: Theme
+                            .of(context)
+                            .colorScheme
+                            .primary,
                         fontWeight: FontWeight.bold,
                       ),
                     ),

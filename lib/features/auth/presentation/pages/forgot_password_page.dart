@@ -1,9 +1,11 @@
+import 'package:email_validator/email_validator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lottie/lottie.dart';
 
 import '../../../../core/router/routes.dart';
+import '../../../../core/utils/validators.dart';
 import '../components/auth_button.dart';
 import '../components/auth_text_field.dart';
 import '../cubits/auth_cubit.dart';
@@ -18,6 +20,27 @@ class ForgotPasswordPage extends StatefulWidget {
 
 class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
   final emailController = TextEditingController();
+  bool _isButtonEnabled = false;
+
+
+  @override
+  void initState() {
+    super.initState();
+    // Add listeners to text controllers
+    emailController.addListener(_updateButtonState);
+  }
+
+  void _updateButtonState() {
+    final email = emailController.text.trim();
+    final isEnabled = isValidEmail(email);
+    if (_isButtonEnabled != isEnabled) {
+      setState(() {
+        _isButtonEnabled = isEnabled;
+      });
+    }
+  }
+
+
 
   void rest() {
     final String email = emailController.text.trim().toLowerCase();
@@ -54,6 +77,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
               _ForgotPasswordForm(
                 emailController: emailController,
                 onRest: rest,
+                isButtonEnabled: _isButtonEnabled,
               ),
               if (isLoading)
                 Container(
@@ -78,10 +102,14 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
 class _ForgotPasswordForm extends StatelessWidget {
   final TextEditingController emailController;
   final VoidCallback onRest;
+  final bool isButtonEnabled;
+
 
   const _ForgotPasswordForm({
     required this.emailController,
     required this.onRest,
+    required this.isButtonEnabled,
+
   });
 
   @override
@@ -127,7 +155,10 @@ class _ForgotPasswordForm extends StatelessWidget {
                 autocorrect: false,
               ),
               const SizedBox(height: 15),
-              AuthButton(text: "RESET PASSWORD", onTap: onRest),
+              AuthButton(text: "RESET PASSWORD",
+                onTap: isButtonEnabled ? onRest : null,
+
+              ),
               const SizedBox(height: 25),
               Row(
                 children: [
