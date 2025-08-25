@@ -42,7 +42,9 @@ class _RegisterPageState extends State<RegisterPage> {
     final confirmPassword = confirmPasswordController.text.trim();
 
     final isEnabled = name.isNotEmpty && isValidEmail(email) &&
-        password.isNotEmpty && confirmPassword.isNotEmpty;
+        password.isNotEmpty && confirmPassword.isNotEmpty &&
+        password == confirmPassword
+    ;
     if (_isButtonEnabled != isEnabled) {
       setState(() {
         _isButtonEnabled = isEnabled;
