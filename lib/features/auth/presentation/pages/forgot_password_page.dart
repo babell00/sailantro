@@ -22,7 +22,6 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
   final emailController = TextEditingController();
   bool _isButtonEnabled = false;
 
-
   @override
   void initState() {
     super.initState();
@@ -39,8 +38,6 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
       });
     }
   }
-
-
 
   void rest() {
     final String email = emailController.text.trim().toLowerCase();
@@ -104,12 +101,10 @@ class _ForgotPasswordForm extends StatelessWidget {
   final VoidCallback onRest;
   final bool isButtonEnabled;
 
-
   const _ForgotPasswordForm({
     required this.emailController,
     required this.onRest,
     required this.isButtonEnabled,
-
   });
 
   @override
@@ -122,7 +117,7 @@ class _ForgotPasswordForm extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              SizedBox(height: 50,),
+              SizedBox(height: 50),
               Semantics(
                 label: 'Animated sailing boat',
                 child: Lottie.asset(
@@ -155,9 +150,10 @@ class _ForgotPasswordForm extends StatelessWidget {
                 autocorrect: false,
               ),
               const SizedBox(height: 15),
-              AuthButton(text: "RESET PASSWORD",
-                onTap: isButtonEnabled ? onRest : null,
-
+              AuthButton(
+                text: "RESET PASSWORD",
+                onTap: onRest,
+                isDisable: !isButtonEnabled,
               ),
               const SizedBox(height: 25),
               Row(

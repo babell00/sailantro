@@ -41,10 +41,12 @@ class _RegisterPageState extends State<RegisterPage> {
     final password = passwordController.text.trim();
     final confirmPassword = confirmPasswordController.text.trim();
 
-    final isEnabled = name.isNotEmpty && isValidEmail(email) &&
-        password.isNotEmpty && confirmPassword.isNotEmpty &&
-        password == confirmPassword
-    ;
+    final isEnabled =
+        name.isNotEmpty &&
+        isValidEmail(email) &&
+        password.isNotEmpty &&
+        confirmPassword.isNotEmpty &&
+        password == confirmPassword;
     if (_isButtonEnabled != isEnabled) {
       setState(() {
         _isButtonEnabled = isEnabled;
@@ -112,7 +114,6 @@ class _RegisterPageState extends State<RegisterPage> {
                 confirmPasswordController: confirmPasswordController,
                 onRegister: register,
                 isButtonEnabled: _isButtonEnabled,
-
               ),
               if (isLoading)
                 Container(
@@ -142,7 +143,6 @@ class _RegistrationForm extends StatelessWidget {
   final VoidCallback onRegister;
   final bool isButtonEnabled;
 
-
   const _RegistrationForm({
     required this.nameController,
     required this.emailController,
@@ -150,7 +150,6 @@ class _RegistrationForm extends StatelessWidget {
     required this.confirmPasswordController,
     required this.onRegister,
     required this.isButtonEnabled,
-
   });
 
   @override
@@ -163,7 +162,7 @@ class _RegistrationForm extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              SizedBox(height: 50,),
+              SizedBox(height: 50),
               Semantics(
                 label: 'Animated sailing boat',
                 child: Lottie.asset(
@@ -178,20 +177,14 @@ class _RegistrationForm extends StatelessWidget {
                 "S A I L I N G O",
                 style: TextStyle(
                   fontSize: 24,
-                  color: Theme
-                      .of(context)
-                      .colorScheme
-                      .primary,
+                  color: Theme.of(context).colorScheme.primary,
                 ),
               ),
               Text(
                 "Let's create an account for you",
                 style: TextStyle(
                   fontSize: 16,
-                  color: Theme
-                      .of(context)
-                      .colorScheme
-                      .primary,
+                  color: Theme.of(context).colorScheme.primary,
                 ),
               ),
               const SizedBox(height: 25),
@@ -222,8 +215,10 @@ class _RegistrationForm extends StatelessWidget {
               ),
 
               const SizedBox(height: 25),
-              AuthButton(text: "SIGN UP",
-                onTap: isButtonEnabled ? onRegister : null,
+              AuthButton(
+                text: "SIGN UP",
+                onTap: onRegister,
+                isDisable: !isButtonEnabled,
               ),
               const SizedBox(height: 25),
               Row(
@@ -231,10 +226,7 @@ class _RegistrationForm extends StatelessWidget {
                   Text(
                     "Already have an account?",
                     style: TextStyle(
-                      color: Theme
-                          .of(context)
-                          .colorScheme
-                          .primary,
+                      color: Theme.of(context).colorScheme.primary,
                     ),
                   ),
                   GestureDetector(
@@ -244,10 +236,7 @@ class _RegistrationForm extends StatelessWidget {
                     child: Text(
                       " Login now",
                       style: TextStyle(
-                        color: Theme
-                            .of(context)
-                            .colorScheme
-                            .primary,
+                        color: Theme.of(context).colorScheme.primary,
                         fontWeight: FontWeight.bold,
                       ),
                     ),

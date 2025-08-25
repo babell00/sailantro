@@ -42,7 +42,6 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
-
   void login() {
     final String email = emailController.text.trim().toLowerCase();
     final String password = passwordController.text.trim();
@@ -184,7 +183,8 @@ class _LoginForm extends StatelessWidget {
               const SizedBox(height: 15),
               AuthButton(
                 text: "LOGIN",
-                onTap: isButtonEnabled ? onLogin : null,
+                onTap: onLogin,
+                isDisable: !isButtonEnabled,
               ),
               const SizedBox(height: 25),
               Row(
