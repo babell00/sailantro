@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
 import 'package:sailantro/features/home/presentation/pages/test_data.dart';
@@ -31,13 +32,17 @@ class _HomePageState extends State<HomePage> {
     _waveStarts = _computeWaveStarts();
 
     // Keep the “current section” in sync with what’s under the pinned header
-    itemPositionsListener.itemPositions.addListener(_updateCurrentSectionFromVisibleItems);
+    itemPositionsListener.itemPositions.addListener(
+      _updateCurrentSectionFromVisibleItems,
+    );
   }
 
   @override
   void dispose() {
     // Clean up the listener
-    itemPositionsListener.itemPositions.removeListener(_updateCurrentSectionFromVisibleItems);
+    itemPositionsListener.itemPositions.removeListener(
+      _updateCurrentSectionFromVisibleItems,
+    );
     super.dispose();
   }
 
@@ -57,7 +62,8 @@ class _HomePageState extends State<HomePage> {
     if (positions.isEmpty || !mounted) return;
 
     final screenHeight = MediaQuery.of(context).size.height;
-    final headerBottomFraction = (_headerTopPadding + _headerHeight) / screenHeight;
+    final headerBottomFraction =
+        (_headerTopPadding + _headerHeight) / screenHeight;
 
     int candidateIndex = 1; // first real section row (0 is spacer)
     for (final pos in positions) {
@@ -87,6 +93,8 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Home Page"),
+        backgroundColor: Colors.transparent, // Make background transparent
+        elevation: 0,
         actions: [
           IconButton(
             onPressed: () => jumpToSection(2),
@@ -108,18 +116,21 @@ class _HomePageState extends State<HomePage> {
             child: ScrollablePositionedList.separated(
               itemScrollController: itemScrollController,
               itemPositionsListener: itemPositionsListener,
-              itemCount: testData.length + 1, // +1 = top spacer
+              itemCount: testData.length + 1,
+              // +1 = top spacer
               itemBuilder: (_, index) {
                 if (index == 0) {
                   return const SizedBox(height: 24);
                 }
                 final secIdx = index - 1;
                 final section = testData[secIdx];
-                final waveStartIndex = _waveStarts[secIdx]; // ← precomputed global start
+                final waveStartIndex =
+                    _waveStarts[secIdx]; // ← precomputed global start
 
                 return SectionWidget(
                   section: section,
-                  waveStartIndex: waveStartIndex, // chips will use waveStartIndex + i
+                  waveStartIndex:
+                      waveStartIndex, // chips will use waveStartIndex + i
                 );
               },
               separatorBuilder: (_, __) => const SizedBox(height: 24.0),
@@ -152,6 +163,52 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
         ],
+      ),
+      bottomNavigationBar: Container(
+        decoration: const BoxDecoration(
+          border: Border(top: BorderSide(color: Color(0xFF2D3D41))),
+        ),
+        child: BottomNavigationBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          showSelectedLabels: false,
+          showUnselectedLabels: false,
+          type: BottomNavigationBarType.fixed,
+          items: [
+            BottomNavigationBarItem(
+              icon: SvgPicture.asset(
+                'assets/svg/inicio.svg',
+                width: 32,
+                height: 32,
+              ),
+              label: '',
+            ),
+            BottomNavigationBarItem(
+              icon: SvgPicture.asset(
+                'assets/svg/practica.svg',
+                width: 32,
+                height: 32,
+              ),
+              label: '',
+            ),
+            BottomNavigationBarItem(
+              icon: SvgPicture.asset(
+                'assets/svg/escudo.svg',
+                width: 32,
+                height: 32,
+              ),
+              label: '',
+            ),
+            BottomNavigationBarItem(
+              icon: SvgPicture.asset('assets/svg/cofre.svg', width: 32, height: 32),
+              label: '',
+            ),
+            BottomNavigationBarItem(
+              icon: SvgPicture.asset('assets/svg/mas.svg', width: 32, height: 32),
+              label: '',
+            ),
+          ],
+        ),
       ),
     );
   }
