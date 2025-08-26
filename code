@@ -1,0 +1,2564 @@
+import 'package:email_validator/email_validator.dart';
+
+bool isValidEmail(String email) {
+  return EmailValidator.validate(email.trim());
+}import 'package:flutter/material.dart';
+
+extension ArgbColorX on int {
+  Color toColor() => Color(this);
+}abstract class RoutePaths {
+  static const home = '/';
+  static const authLogin = '/auth/login';
+  static const authRegister = '/auth/register';
+  static const authForgotPassword = '/auth/forgot_password';
+}
+
+abstract class RouteNames {
+  static const home = 'home';
+  static const authLogin = 'authLogin';
+  static const authRegister = 'authRegister';
+  static const authForgotPassword = 'authForgotPassword';
+  static const unit = 'unit';
+}
+import 'dart:async';
+
+import 'package:flutter/foundation.dart';
+import 'package:sailantro/features/auth/presentation/cubits/auth_cubit.dart';
+import 'package:sailantro/features/auth/presentation/cubits/auth_state.dart';
+
+class AuthNotifier extends ChangeNotifier {
+
+  final AuthCubit _authCubit;
+  late final StreamSubscription<AuthState> _authSubscription;
+
+  AuthNotifier(this._authCubit) {
+    _authSubscription = _authCubit.stream.listen((_) {
+      notifyListeners();
+    });
+  }
+
+  @override
+  void dispose() {
+    _authSubscription.cancel();
+    super.dispose();
+  }
+}
+import 'package:sailantro/core/router/routes.dart';
+import 'package:sailantro/features/auth/presentation/pages/forgot_password_page.dart';
+import 'package:sailantro/features/auth/presentation/pages/register_page.dart';
+
+import '../../features/auth/presentation/cubits/auth_cubit.dart';
+import '../../features/auth/presentation/cubits/auth_state.dart';
+import '../../features/auth/presentation/pages/login_page.dart';
+import '../../features/home/presentation/pages/home_page.dart';
+import 'auth_notifier.dart';
+import 'package:go_router/go_router.dart';
+
+class AppRouter {
+  static GoRouter router(AuthCubit authCubit) {
+    return GoRouter(
+      debugLogDiagnostics: true,
+      refreshListenable: AuthNotifier(authCubit),
+      initialLocation: RoutePaths.home,
+      routes: [
+        GoRoute(
+          path: RoutePaths.home,
+          builder: (context, state) => const HomePage(),
+        ),
+        GoRoute(
+          path: RoutePaths.authLogin,
+          builder: (context, state) => const LoginPage(),
+        ),
+        GoRoute(
+          path: RoutePaths.authRegister,
+          builder: (context, state) => const RegisterPage(),
+        ),
+        GoRoute(
+          path: RoutePaths.authForgotPassword,
+          builder: (context, state) => const ForgotPasswordPage(),
+        ),
+      ],
+      redirect: (context, state) {
+        final authState = authCubit.state;
+
+        final isAuthRoute =
+            state.matchedLocation == RoutePaths.authLogin ||
+            state.matchedLocation == RoutePaths.authRegister ||
+            state.matchedLocation == RoutePaths.authForgotPassword;
+
+        if (authState is Unauthenticated || authState is AuthError) {
+          return isAuthRoute ? null : RoutePaths.authLogin;
+        }
+
+        if (authState is Authenticated && isAuthRoute) {
+          return RoutePaths.home;
+        }
+        return null;
+      },
+    );
+  }
+}
+import 'package:sailantro/features/home/domain/models/section.dart';
+
+class Course {
+  final String id;
+  final String name;
+  final List<Section> sections;
+
+
+  const Course({
+    required this.id,
+    required this.name,
+    required this.sections
+  });
+}import 'challenge.dart';
+
+class Section {
+  final String id;
+  final int unit;
+  final int index;
+  final String title;
+  final int colorArgb;
+
+  final List<Challenge> challenges;
+
+  const Section({
+    required this.id,
+    required this.unit,
+    required this.index,
+    required this.title,
+    required this.colorArgb,
+    required this.challenges,
+  });
+}enum QuestionType {
+  mcqSingle,
+  mcqMulti,
+  matchPairs,
+  ordering,
+}
+
+class Question {
+  final String id;
+  final QuestionType type;
+  final int order;
+  final String stem;
+  final String? imageUrl;
+  final Map<String, dynamic> payload;
+
+  const Question({
+    required this.id,
+    required this.type,
+    required this.order,
+    required this.stem,
+    this.imageUrl,
+    this.payload = const {},
+  });
+}import 'question.dart';
+
+class Challenge {
+  final String id;
+  final String title;
+  final int order;
+  final bool isLocked;
+  final int? xpReward;
+  final String iconPath;
+  final List<Question> questions;
+
+
+  const Challenge({
+    required this.id,
+    required this.title,
+    required this.order,
+    required this.questions,
+    required this.iconPath,
+    this.isLocked = false,
+    this.xpReward,
+  });
+}import 'package:flutter/material.dart';
+
+class SectionTheme {
+  final Color color;
+  const SectionTheme(this.color);
+}import 'dart:math' as math;
+
+class PathLayout {
+  /// Horizontal offset in pixels for a given index.
+  /// Use a GLOBAL index (kept across sections) for a continuous wave.
+  static double dx({
+    required int index,
+    double amplitude = 100.0,         // curve width
+    double stepRads = math.pi / 2,    // center→right→center→left…
+    double phase = -math.pi / 2,      // start a bit left of center
+  }) {
+    return amplitude * math.sin(phase + index * stepRads);
+  }
+}
+import 'dart:math' as math;
+import 'dart:ui';
+import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
+import '../../domain/models/challenge.dart';
+import '../../domain/models/section.dart';
+import '../utils/path_layout.dart';
+
+class ChallengeChip extends StatelessWidget {
+  final Challenge challenge;
+  final Section section;
+
+  /// IMPORTANT: This must be a GLOBAL index (not 0..n per section).
+  final int visualIndex;
+  final Color bgColor;
+
+  const ChallengeChip({
+    super.key,
+    required this.challenge,
+    required this.section,
+    required this.visualIndex,
+    required this.bgColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final dx = PathLayout.dx(
+      index: visualIndex,
+      amplitude: 100.0,
+      stepRads: math.pi / 2,
+      phase: -math.pi / 2,
+    );
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 24.0),
+      child: Transform.translate(
+        offset: Offset(dx, 0),
+        child: DecoratedBox(
+          decoration: const BoxDecoration(
+            border: Border(bottom: BorderSide(color: Colors.white10, width: 6)),
+            borderRadius: BorderRadius.all(Radius.circular(36)),
+          ),
+          child: MySvgIconWithEffects(
+            assetPath: challenge.iconPath,
+            isDisabled: challenge.isLocked,
+
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class MySvgIconWithEffects extends StatelessWidget {
+  final bool isDisabled;
+  final String assetPath;
+
+  const MySvgIconWithEffects({
+    super.key,
+    this.isDisabled = false,
+    required this.assetPath,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (isDisabled) {
+      return ImageFiltered(
+        imageFilter: ImageFilter.blur(sigmaX: 1.5, sigmaY: 1.5),
+        child: ColorFiltered(
+          colorFilter: const ColorFilter.matrix(<double>[
+            0.2126,
+            0.7152,
+            0.0722,
+            0,
+            0,
+            0.2126,
+            0.7152,
+            0.0722,
+            0,
+            0,
+            0.2126,
+            0.7152,
+            0.0722,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+          ]),
+          child: SvgPicture.asset(assetPath, width: 64, height: 64),
+        ),
+      );
+    } else {
+      return SvgPicture.asset(assetPath, width: 64, height: 64);
+    }
+  }
+}
+import 'package:flutter/material.dart';
+
+class SectionTitleWidget extends StatelessWidget {
+  final String title;
+
+  const SectionTitleWidget({super.key, required this.title});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        const Expanded(child: Divider(color: Color(0xFF2D3D41))),
+        const SizedBox(width: 16),
+        Text(
+          title,
+          style: const TextStyle(
+            color: Color(0xFF52656D),
+            fontWeight: FontWeight.bold,
+            fontSize: 18.0,
+          ),
+        ),
+        const SizedBox(width: 16),
+        const Expanded(child: Divider(color: Color(0xFF2D3D41))),
+      ],
+    );
+  }
+}
+import 'package:flutter/material.dart';
+import 'package:sailantro/core/utils/color_ext.dart';
+
+import '../../domain/models/section.dart';
+
+class CurrentSectionWidget extends StatelessWidget {
+  final String courseName;
+  final Section section;
+
+  const CurrentSectionWidget({
+    super.key,
+    required this.courseName,
+    required this.section
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final color = section.colorArgb.toColor();
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16.0),
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(16.0),
+        border: Border(bottom: BorderSide(color: color, width: 4.0)),
+      ),
+      child: IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(12.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(courseName,
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    SizedBox(height: 8,),
+                    Text(
+                      section.title,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18.0,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 24.0),
+              decoration: BoxDecoration(
+                border: Border(left: BorderSide(color: color, width: 2.0)),
+              ),
+              child: Center(
+                child: Icon(Icons.lightbulb, color: Colors.white,),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+import 'package:flutter/material.dart';
+import 'package:sailantro/core/utils/color_ext.dart';
+import 'package:sailantro/features/home/presentation/components/section_title_widget.dart';
+import '../../domain/models/section.dart';
+import 'challenge_chip.dart';
+
+class SectionWidget extends StatelessWidget {
+  final Section section;
+
+  /// Where the wave should start for this section.
+  /// Pass a GLOBAL running index from the page.
+  final int waveStartIndex;
+
+  const SectionWidget({
+    super.key,
+    required this.section,
+    required this.waveStartIndex,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final color = section.colorArgb.toColor();
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        SectionTitleWidget(title: section.title),
+        const SizedBox(height: 24.0),
+        for (var i = 0; i < section.challenges.length; i++)
+          ChallengeChip(
+            challenge: section.challenges[i],
+            section: section,
+            visualIndex: waveStartIndex + i, // GLOBAL index
+            bgColor: color,
+          ),
+      ],
+    );
+  }
+}
+  import 'package:flutter/material.dart';
+
+class ChestWidget extends StatelessWidget {
+  const ChestWidget({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 24.0),
+      child: Container(
+        width: 24.0,
+        height: 24.0,
+        color: Colors.red, // A visual indicator
+      ),
+    );
+  }
+}
+// import 'dart:math' as math;
+//
+// import 'package:flutter/material.dart';
+// import 'dart:math';
+//
+// import '../../domain/models/section.dart';
+//
+// class ExerciseWidget extends StatelessWidget {
+//   final int index;
+//   final Section data;
+//
+//   const ExerciseWidget({
+//     super.key,
+//     required this.index,
+//     required this.data
+//   });
+//
+//   @override
+//   Widget build(BuildContext context) {
+//     return Container(
+//       margin: EdgeInsets.only(
+//         bottom: index != 8 ? 24.0 : 0,
+//         left: getLeft(index),
+//         right: getRight(index),
+//       ),
+//       decoration: BoxDecoration(
+//         border: const Border(
+//           bottom: BorderSide(color: Colors.white10, width: 6.0),
+//         ),
+//         borderRadius: BorderRadius.circular(36.0),
+//       ),
+//       child: ElevatedButton(
+//         onPressed: () {},
+//         style: ElevatedButton.styleFrom(
+//           backgroundColor: data.color,
+//           fixedSize: const Size(56, 48),
+//           elevation: 0,
+//           padding: EdgeInsets.zero,
+//           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+//           minimumSize: Size.zero,
+//         ),
+//         child: Container(
+//           width: 24.0,
+//           height: 24.0,
+//           color: Colors.yellow, // A visual indicator
+//         ),
+//       ),
+//     );
+//   }
+// }
+//
+// double getLeft(int indice) {
+//   const margin = 80.0;
+//   int pos = indice % 9;
+//
+//   if (pos == 1) {
+//     return margin;
+//   }
+//   if (pos == 2) {
+//     return margin * 2;
+//   }
+//   if (pos == 3) {
+//     return margin;
+//   }
+//
+//   return 0.0;
+// }
+//
+// double getRight(int indice) {
+//   const margin = 80.0;
+//   int pos = indice % 9;
+//
+//   if (pos == 5) {
+//     return margin;
+//   }
+//   if (pos == 6) {
+//     return margin * 2;
+//   }
+//   if (pos == 7) {
+//     return margin;
+//   }
+//
+//   return 0.0;
+// }
+import 'dart:ui';
+import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
+import 'package:lottie/lottie.dart';
+import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
+
+import 'package:sailantro/features/home/presentation/pages/test_data.dart';
+import '../components/current_section_widget.dart';
+import '../components/section_widget.dart';
+
+const double _headerHeight = 96.0;
+const double _headerTopPadding = 8.0;
+
+class HomePage extends StatefulWidget {
+  const HomePage({super.key});
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  final itemScrollController = ItemScrollController();
+  final itemPositionsListener = ItemPositionsListener.create();
+  int iCurrentSection = 0;
+
+  // Prefix sums of challenges per section → waveStartIndex per section
+  late final List<int> _waveStarts;
+
+  @override
+  void initState() {
+    super.initState();
+    _waveStarts = _computeWaveStarts();
+    itemPositionsListener.itemPositions.addListener(_updateCurrentSectionFromVisibleItems);
+  }
+
+  @override
+  void dispose() {
+    itemPositionsListener.itemPositions.removeListener(_updateCurrentSectionFromVisibleItems);
+    super.dispose();
+  }
+
+  List<int> _computeWaveStarts() {
+    var acc = 0;
+    final starts = <int>[];
+    for (final s in testData) {
+      starts.add(acc);
+      acc += s.challenges.length;
+    }
+    return starts;
+  }
+
+  void _updateCurrentSectionFromVisibleItems() {
+    final positions = itemPositionsListener.itemPositions.value;
+    if (positions.isEmpty || !mounted) return;
+
+    final screenHeight = MediaQuery.of(context).size.height;
+    final headerBottomFraction = (_headerTopPadding + _headerHeight) / screenHeight;
+
+    int candidateIndex = 1; // 0 is spacer
+    for (final pos in positions) {
+      if (pos.index == 0) continue;
+      if (pos.itemLeadingEdge <= headerBottomFraction) {
+        candidateIndex = pos.index;
+      }
+    }
+    final newSection = (candidateIndex - 1).clamp(0, testData.length - 1);
+    if (newSection != iCurrentSection) {
+      setState(() => iCurrentSection = newSection);
+    }
+  }
+
+  void jumpToSection(int sectionIndex) {
+    itemScrollController.scrollTo(
+      index: sectionIndex + 1, // +1 for spacer
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+      alignment: 0.1,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      // appBar: HomeTopBar(
+      //   onJumpToExample: () => jumpToSection(2),
+      //   onLogout: () => context.read<AuthCubit>().logout(),
+      // ),
+      body: SafeArea(
+        child: Stack(
+          children: [
+            const HomeBackground(
+              asset: 'assets/lottie/water.json',
+              blurSigma: 8,
+              opacity: 0.25,
+            ),
+            HomeContentList(
+              headerHeight: _headerHeight,
+              headerTopPadding: _headerTopPadding,
+              sectionCount: testCourse.sections.length,
+              buildItem: (secIdx) => SectionWidget(
+                section: testCourse.sections[secIdx],
+                waveStartIndex: _waveStarts[secIdx], // chips use waveStartIndex + i
+              ),
+              itemScrollController: itemScrollController,
+              itemPositionsListener: itemPositionsListener,
+            ),
+            HomePinnedHeader(
+              headerTopPadding: _headerTopPadding,
+              child: CurrentSectionWidget(courseName: testCourse.name ,section: testCourse.sections[iCurrentSection]),
+            ),
+          ],
+        ),
+      ),
+      bottomNavigationBar: const HomeBottomNav(),
+    );
+  }
+}
+
+/* ========================= SUB-WIDGETS ========================= */
+
+class HomeTopBar extends StatelessWidget implements PreferredSizeWidget {
+  final VoidCallback onJumpToExample;
+  final VoidCallback onLogout;
+  const HomeTopBar({super.key, required this.onJumpToExample, required this.onLogout});
+
+  @override
+  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
+
+  @override
+  Widget build(BuildContext context) {
+    return AppBar(
+      title: const Text("Home Page"),
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      elevation: 0,
+      actions: [
+        IconButton(onPressed: onJumpToExample, icon: const Icon(Icons.arrow_downward)),
+        IconButton(onPressed: onLogout, icon: const Icon(Icons.logout)),
+      ],
+    );
+  }
+}
+
+class HomeBackground extends StatelessWidget {
+  final String asset;
+  final double blurSigma;
+  final double opacity;
+
+  const HomeBackground({
+    super.key,
+    required this.asset,
+    this.blurSigma = 8,
+    this.opacity = 0.25,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Positioned.fill(
+      child: IgnorePointer(
+        child: ImageFiltered(
+          imageFilter: ImageFilter.blur(sigmaX: blurSigma, sigmaY: blurSigma),
+          child: Opacity(
+            opacity: opacity,
+            child: Semantics(
+              label: 'Animated sailing water background',
+              child: Lottie.asset(
+                asset,
+                fit: BoxFit.cover,
+                alignment: Alignment.bottomCenter,
+                repeat: true,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+typedef SectionItemBuilder = Widget Function(int sectionIndex);
+
+class HomeContentList extends StatelessWidget {
+  final double headerHeight;
+  final double headerTopPadding;
+  final int sectionCount;
+  final SectionItemBuilder buildItem;
+  final ItemScrollController itemScrollController;
+  final ItemPositionsListener itemPositionsListener;
+
+  const HomeContentList({
+    super.key,
+    required this.headerHeight,
+    required this.headerTopPadding,
+    required this.sectionCount,
+    required this.buildItem,
+    required this.itemScrollController,
+    required this.itemPositionsListener,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(top: headerTopPadding + headerHeight + 8),
+      child: ScrollablePositionedList.separated(
+        itemScrollController: itemScrollController,
+        itemPositionsListener: itemPositionsListener,
+        itemCount: sectionCount + 1, // +1 = top spacer
+        itemBuilder: (_, index) {
+          if (index == 0) return const SizedBox(height: 24);
+          final secIdx = index - 1;
+          return buildItem(secIdx);
+        },
+        separatorBuilder: (_, __) => const SizedBox(height: 8.0),
+        padding: const EdgeInsets.only(bottom: 320.0, left: 16.0, right: 16.0),
+      ),
+    );
+  }
+}
+
+class HomePinnedHeader extends StatelessWidget {
+  final double headerTopPadding;
+  final Widget child;
+  const HomePinnedHeader({
+    super.key,
+
+    required this.headerTopPadding,
+    required this.child,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Positioned(
+      top: headerTopPadding,
+      left: 4,
+      right: 4,
+      child: SizedBox(child: child),
+    );
+  }
+}
+
+class HomeBottomNav extends StatelessWidget {
+  const HomeBottomNav({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: const BoxDecoration(border: Border(top: BorderSide(color: Color(
+          0xFFC7F5F8)))),
+      child: BottomNavigationBar(
+        backgroundColor: Theme.of(context).colorScheme.surface,
+        elevation: 0,
+        showSelectedLabels: false,
+        showUnselectedLabels: false,
+        type: BottomNavigationBarType.fixed,
+        items: [
+          BottomNavigationBarItem(
+            icon: SvgPicture.asset('assets/svg/lighthouse.svg', width: 32, height: 32),
+            label: '',
+          ),
+          BottomNavigationBarItem(
+            icon: SvgPicture.asset('assets/svg/helm.svg', width: 32, height: 32),
+            label: '',
+          ),
+          BottomNavigationBarItem(
+            icon: SvgPicture.asset('assets/svg/trophy.svg', width: 32, height: 32),
+            label: '',
+          ),
+          BottomNavigationBarItem(
+            icon: SvgPicture.asset('assets/svg/treasure.svg', width: 32, height: 32),
+            label: '',
+          ),
+          BottomNavigationBarItem(
+            icon: SvgPicture.asset('assets/svg/pirate.svg', width: 32, height: 32),
+            label: '',
+          ),
+        ],
+      ),
+    );
+  }
+}
+import 'dart:ui';
+
+import '../../../../themes/light_mode.dart';
+import '../../domain/models/challenge.dart';
+import '../../domain/models/course.dart';
+import '../../domain/models/question.dart';
+import '../../domain/models/section.dart';
+
+final testCourse = Course(
+    id: 'ray_day_skipper_theory',
+    name: 'RAY Day Skipper Theory',
+    sections: testData
+);
+
+final testData = <Section>[
+  Section(
+    id: 'sec_safety_equipment',
+    unit: 1,
+    index: 1,
+    title: 'Safety equipment',
+    colorArgb: const Color(0xFF4ECDC4).value,
+    challenges: [
+      Challenge(
+        id: 'ch_safety_intro',
+        title: 'Safety Gear · Intro',
+        order: 100,
+        iconPath: 'assets/svg/chip/chip_4ECDC4.svg',
+        questions: const [
+          Question(
+            id: 'q_lifejackets_required',
+            type: QuestionType.mcqSingle,
+            order: 100,
+            stem: 'When should you wear a lifejacket?',
+            payload: {
+              'options': [
+                'Only at night',
+                'Only offshore',
+                'When on deck',
+                'All of the above',
+              ],
+              'answerIndex': 3,
+            },
+          ),
+        ],
+      ),
+      Challenge(
+        id: 'ch_liferaft_basics',
+        title: 'Liferaft Basics',
+        order: 200,
+        iconPath: 'assets/svg/chip/chip_4ECDC4.svg',
+        questions: const [
+          Question(
+            id: 'q_liferaft_check',
+            type: QuestionType.mcqSingle,
+            order: 100,
+            stem: 'How often should a liferaft be serviced?',
+            payload: {
+              'options': ['Monthly', 'Annually', 'Every 3–5 years', 'Never'],
+              'answerIndex': 2,
+            },
+          ),
+        ],
+      ),
+      Challenge(
+        id: 'ch_ppe_match',
+        title: 'PPE Match',
+        order: 300,
+        iconPath: 'assets/svg/chip/chip_4ECDC4.svg',
+        questions: const [
+          Question(
+            id: 'q_ppe_match',
+            type: QuestionType.matchPairs,
+            order: 100,
+            stem: 'Match item to purpose.',
+            payload: {
+              'pairs': [
+                ['Jackstay', 'Clip-on tether run'],
+                ['Whistle', 'Sound signal on LJ'],
+                ['Sprayhood', 'Protect face in waves'],
+              ],
+            },
+          ),
+        ],
+      ),
+      Challenge(
+        id: 'ch_safety_review',
+        title: 'Safety Review',
+        order: 400,
+        iconPath: 'assets/svg/chip/chip_4ECDC4.svg',
+        questions: const [
+          Question(
+            id: 'q_safety_multi',
+            type: QuestionType.mcqMulti,
+            order: 100,
+            stem: 'Select all items found in a liferaft grab bag.',
+            payload: {
+              'options': ['Flares', 'EPIRB', 'Kettle', 'Sea anchor'],
+              'correctIndexes': [0, 1, 3],
+            },
+          ),
+        ],
+      ),
+    ],
+  ),
+
+  Section(
+    id: 'sec_distress_signals',
+    unit: 1,
+    index: 2,
+    title: 'Distress signals',
+    colorArgb: const Color(0xFFD65DB1).value,
+    challenges: [
+      Challenge(
+        id: 'ch_flares',
+        title: 'Flares & Smoke',
+        order: 100,
+        iconPath: 'assets/svg/chip/chip_D65DB1.svg',
+        questions: const [
+          Question(
+            id: 'q_distress_flare',
+            type: QuestionType.mcqSingle,
+            order: 100,
+            stem: 'Which is a recognized distress signal?',
+            payload: {
+              'options': [
+                'Red hand flare',
+                'White torch light',
+                'Morse X with arms',
+              ],
+              'answerIndex': 0,
+            },
+          ),
+        ],
+      ),
+      Challenge(
+        id: 'ch_radio_mayday',
+        title: 'MAYDAY Voice',
+        order: 200,
+        iconPath: 'assets/svg/chip/chip_D65DB1.svg',
+        questions: const [
+          Question(
+            id: 'q_mayday_order',
+            type: QuestionType.ordering,
+            order: 100,
+            stem: 'Order a MAYDAY voice call.',
+            payload: {
+              'items': [
+                'MAYDAY ×3',
+                'Vessel name & call sign',
+                'Position',
+                'Nature of distress',
+                'Assistance required',
+              ],
+            },
+          ),
+        ],
+      ),
+      Challenge(
+        id: 'ch_dsc_basics',
+        title: 'DSC Basics',
+        order: 300,
+        iconPath: 'assets/svg/chip/chip_D65DB1.svg',
+        questions: const [
+          Question(
+            id: 'q_dsc_true_false',
+            type: QuestionType.mcqSingle,
+            order: 100,
+            stem:
+                'True or false: A DSC distress alert transmits your position automatically.',
+            payload: {
+              'options': ['True', 'False'],
+              'answerIndex': 0,
+            },
+          ),
+        ],
+      ),
+    ],
+  ),
+
+  Section(
+    id: 'sec_lifejackets',
+    unit: 1,
+    index: 3,
+    title: 'Lifejackets',
+    colorArgb: const Color(0xFF20BF55).value,
+    // green
+    challenges: [
+      Challenge(
+        id: 'ch_lj_types',
+        title: 'Types & Buoyancy',
+        order: 100,
+        iconPath: 'assets/svg/chip/chip_20BF55.svg',
+        questions: const [
+          Question(
+            id: 'q_150n_when',
+            type: QuestionType.mcqSingle,
+            order: 100,
+            stem: 'When is a 150N lifejacket typically recommended?',
+            payload: {
+              'options': [
+                'Inland lakes',
+                'Sheltered bays',
+                'Coastal/offshore',
+                'Never',
+              ],
+              'answerIndex': 2,
+            },
+          ),
+        ],
+      ),
+      Challenge(
+        id: 'ch_lj_care',
+        title: 'Care & Servicing',
+        order: 200,
+        iconPath: 'assets/svg/chip/chip_20BF55.svg',
+        questions: const [
+          Question(
+            id: 'q_co2_check',
+            type: QuestionType.mcqMulti,
+            order: 100,
+            stem: 'What should you check on an inflatable lifejacket?',
+            payload: {
+              'options': [
+                'CO₂ cylinder tightness',
+                'Auto cartridge expiry',
+                'Top-up with air weekly',
+              ],
+              'correctIndexes': [0, 1],
+            },
+          ),
+        ],
+      ),
+      Challenge(
+        id: 'ch_lj_fit',
+        title: 'Fitting & Adjustment',
+        order: 300,
+        iconPath: 'assets/svg/chip/chip_20BF55.svg',
+        questions: const [
+          Question(
+            id: 'q_crotch_straps',
+            type: QuestionType.mcqSingle,
+            order: 100,
+            stem: 'Crotch straps are important because…',
+            payload: {
+              'options': [
+                'They look cool',
+                'They prevent the jacket riding up in water',
+                'They reduce buoyancy',
+              ],
+              'answerIndex': 1,
+            },
+          ),
+        ],
+      ),
+    ],
+  ),
+
+  Section(
+    id: 'sec_fire',
+    unit: 1,
+    index: 4,
+    title: 'Fire & extinguishers',
+    colorArgb: const Color(0xFFFC7E44).value,
+    // purple
+    challenges: [
+      Challenge(
+        id: 'ch_classes_of_fire',
+        title: 'Classes of Fire',
+        order: 100,
+        iconPath: 'assets/svg/chip/chip_FC7E44.svg',
+        questions: const [
+          Question(
+            id: 'q_class_b',
+            type: QuestionType.mcqSingle,
+            order: 100,
+            stem: 'Class B fires involve…',
+            payload: {
+              'options': ['Wood/paper', 'Flammable liquids', 'Gases'],
+              'answerIndex': 1,
+            },
+          ),
+        ],
+      ),
+      Challenge(
+        id: 'ch_ext_match',
+        title: 'Extinguisher Match',
+        order: 200,
+        iconPath: 'assets/svg/chip/chip_FC7E44.svg',
+        questions: const [
+          Question(
+            id: 'q_ext_match',
+            type: QuestionType.matchPairs,
+            order: 100,
+            stem: 'Match extinguisher to fire.',
+            payload: {
+              'pairs': [
+                ['CO₂', 'Electrical'],
+                ['Foam', 'Fuel'],
+                ['Water', 'Solid materials'],
+              ],
+            },
+          ),
+        ],
+      ),
+      Challenge(
+        id: 'ch_eng_compartment',
+        title: 'Engine Compartment',
+        order: 300,
+        iconPath: 'assets/svg/chip/chip_FC7E44.svg',
+        isLocked: true,
+        questions: const [
+          Question(
+            id: 'q_never_open',
+            type: QuestionType.mcqSingle,
+            order: 100,
+            stem: 'During an engine fire you should…',
+            payload: {
+              'options': [
+                'Open the hatch wide',
+                'Starve oxygen and use fire port',
+                'Spray water from above',
+              ],
+              'answerIndex': 1,
+            },
+          ),
+        ],
+      ),
+    ],
+  ),
+
+  Section(
+    id: 'sec_engine_mob',
+    unit: 1,
+    index: 5,
+    title: 'Engine checks & MOB',
+    colorArgb: const Color(0xFF845EC2).value,
+    // red
+    challenges: [
+      Challenge(
+        id: 'ch_prestart',
+        title: 'Pre-start Checks',
+        order: 100,
+        iconPath: 'assets/svg/chip/chip_845EC2.svg',
+        isLocked: true,
+        questions: const [
+          Question(
+            id: 'q_prestart_list',
+            type: QuestionType.mcqMulti,
+            order: 100,
+            stem: 'Select the common pre-start checks.',
+            payload: {
+              'options': [
+                'Oil level',
+                'Coolant level',
+                'Prop pitch',
+                'Fuel shut-off open',
+              ],
+              'correctIndexes': [0, 1, 3],
+            },
+          ),
+        ],
+      ),
+      Challenge(
+        id: 'ch_mob_sight',
+        title: 'MOB – First Actions',
+        order: 200,
+        iconPath: 'assets/svg/chip/chip_845EC2.svg',
+        isLocked: true,
+        questions: const [
+          Question(
+            id: 'q_mob_order',
+            type: QuestionType.ordering,
+            order: 100,
+            stem: 'Order the first actions in an MOB.',
+            payload: {
+              'items': [
+                'Shout “Man overboard!”',
+                'Throw lifebuoy',
+                'Press MOB on GPS',
+                'Keep pointing at casualty',
+              ],
+            },
+          ),
+        ],
+      ),
+      Challenge(
+        id: 'ch_pickup',
+        title: 'Pick-up Under Power',
+        order: 300,
+        iconPath: 'assets/svg/chip/chip_845EC2.svg',
+        isLocked: true,
+        questions: const [
+          Question(
+            id: 'q_approach_side',
+            type: QuestionType.mcqSingle,
+            order: 100,
+            stem: 'Preferred side to recover under power (typical yacht)?',
+            payload: {
+              'options': ['Leeward side', 'Windward side'],
+              'answerIndex': 0,
+            },
+          ),
+        ],
+      ),
+    ],
+  ),
+];
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:sailantro/features/auth/domain/models/app_user.dart';
+import 'package:sailantro/features/auth/domain/repository/auth_repository.dart';
+
+import 'firebase_auth_error_mapper.dart';
+import '../domain/errors/auth_failure.dart';
+
+class FirebaseAuthRepository implements AuthRepository {
+  final FirebaseAuth firebaseAuth = FirebaseAuth.instance;
+
+  @override
+  Future<void> deleteAccount() async {
+    try {
+      final u = firebaseAuth.currentUser;
+      if (u == null) throw const AuthFailure('No user logged in.');
+      await u.delete();            // may throw requires-recent-login
+      await logout();
+    } on FirebaseAuthException catch (e) {
+      throw mapFirebaseAuthException(e);
+    } catch (_) {
+      throw const AuthFailure('User deletion failed. Please try again.');
+    }
+  }
+
+  @override
+  Future<AppUser?> getCurrentUser() async {
+    final u = firebaseAuth.currentUser;
+    if (u == null) return null;
+    return AppUser(
+      uid: u.uid,
+      email: u.email,               // ← nullable, no '' fallback
+      displayName: u.displayName,
+    );
+  }
+
+  @override
+  Future<AppUser?> loginWithEmailPassword(String email, String password) async {
+    try {
+      final cred = await firebaseAuth.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+      final u = cred.user;
+      if (u == null) {
+        throw const AuthFailure('Login failed. Please try again.');
+      }
+      return AppUser(
+        uid: u.uid,
+        email: u.email ?? email,    // ← prefer Firebase; fall back to input
+        displayName: u.displayName,
+      );
+    } on FirebaseAuthException catch (e) {
+      throw mapFirebaseAuthException(e);
+    } catch (_) {
+      throw const AuthFailure('Login failed. Please try again.');
+    }
+  }
+
+  @override
+  Future<void> logout() async {
+    await firebaseAuth.signOut();
+  }
+
+  @override
+  Future<AppUser?> registerWithEmailPassword(
+      String name,
+      String email,
+      String password,
+      ) async {
+    try {
+      final cred = await firebaseAuth.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+      final u = cred.user;
+      if (u == null) {
+        throw const AuthFailure('Registration failed. Please try again.');
+      }
+      await u.updateDisplayName(name);
+      return AppUser(
+        uid: u.uid,
+        email: u.email ?? email,    // ← usually present, but keep safe
+        displayName: name,
+      );
+    } on FirebaseAuthException catch (e) {
+      throw mapFirebaseAuthException(e);
+    } catch (_) {
+      throw const AuthFailure('Registration failed. Please try again.');
+    }
+  }
+
+  @override
+  Future<void> sendPasswordResetEmail(String email) async {
+    try {
+      await firebaseAuth.sendPasswordResetEmail(email: email);
+    } on FirebaseAuthException catch (e) {
+      throw mapFirebaseAuthException(e);
+    } catch (_) {
+      throw const AuthFailure('Could not send reset email. Please try again.');
+    }
+  }
+}
+import 'package:firebase_auth/firebase_auth.dart';
+import '../domain/errors/auth_failure.dart';
+
+AuthFailure mapFirebaseAuthException(FirebaseAuthException e) {
+  switch (e.code) {
+    // Sign in
+    case 'invalid-credential':
+    case 'wrong-password':
+    case 'user-not-found':
+    case 'invalid-email':
+      return AuthFailure('Invalid email or password.', code: e.code);
+
+    // Register
+    case 'email-already-in-use':
+      return AuthFailure('This email is already in use.', code: e.code);
+    case 'weak-password':
+      return AuthFailure('Choose a stronger password.', code: e.code);
+    case 'operation-not-allowed':
+      return AuthFailure('Email/password sign-in is disabled.', code: e.code);
+
+    // Account state / rate limit
+    case 'user-disabled':
+      return AuthFailure(
+        'This account is disabled. Contact support.',
+        code: e.code,
+      );
+    case 'too-many-requests':
+      return AuthFailure('Too many attempts. Try again later.', code: e.code);
+
+    // Connectivity
+    case 'network-request-failed':
+      return AuthFailure('Network error. Check your connection.', code: e.code);
+
+    // Sensitive ops
+    case 'requires-recent-login':
+      return AuthFailure('Please re-authenticate to continue.', code: e.code);
+
+    default:
+      return AuthFailure(
+        'Something went wrong. Please try again.',
+        code: e.code,
+      );
+  }
+}
+import 'package:sailantro/features/auth/domain/models/app_user.dart';
+
+abstract class AuthRepository {
+  Future<AppUser?> loginWithEmailPassword(String email, String password);
+  Future<AppUser?> registerWithEmailPassword(String name, String email, String password);
+  Future<void> logout();
+  Future<AppUser?> getCurrentUser();
+  Future<void> sendPasswordResetEmail(String email);
+  Future<void> deleteAccount();
+}
+class AppUser {
+  final String uid;
+  final String? email;
+  final String? displayName;
+
+  AppUser({
+    required this.uid,
+    this.email,          // ← nullable
+    this.displayName,
+  });
+
+  Map<String, dynamic> toJson(){
+    return {
+      'uid': uid,
+      'email': email,
+    };
+  }
+
+  factory AppUser.fromJson(Map<String, dynamic> jsonUser) {
+    return AppUser(uid: jsonUser['uid'], email: jsonUser['email']);
+  }
+}class AuthFailure implements Exception {
+  final String message;     // safe, user-friendly
+  final String? code;       // optional: keep original code for logging/analytics
+
+  const AuthFailure(this.message, {this.code});
+
+  @override
+  String toString() => 'AuthFailure(code: $code, message: $message)';
+}
+import 'package:flutter/foundation.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:sailantro/features/auth/domain/models/app_user.dart';
+import 'package:sailantro/features/auth/domain/repository/auth_repository.dart';
+import 'package:sailantro/features/auth/presentation/cubits/auth_state.dart';
+import '../../domain/errors/auth_failure.dart';
+
+class AuthCubit extends Cubit<AuthState> {
+  final AuthRepository authRepository;
+  AppUser? _currentUser;
+
+  AuthCubit({required this.authRepository}) : super(AuthInitial());
+
+  AppUser? get currentUser => _currentUser;
+
+  /// Called once on app start
+  Future<void> checkAuth() async {
+    debugPrint('Checking current user auth status...');
+    emit(AuthLoading());
+    final user = await authRepository.getCurrentUser();
+    if (user != null) {
+      debugPrint('User found: ${user.uid}');
+      _currentUser = user;
+      emit(Authenticated(user));
+    } else {
+      debugPrint('No user found. User is unauthenticated.');
+      emit(Unauthenticated());
+    }
+  }
+
+  Future<void> login(String email, String password) async {
+    debugPrint('Attempting login for: $email');
+    try {
+      emit(AuthLoading());
+      final user = await authRepository.loginWithEmailPassword(email, password);
+      if (user == null) {
+        emit(AuthError('Login failed. Please try again.'));
+        return;
+      }
+      debugPrint('Login successful: ${user.uid}');
+      _currentUser = user;
+      emit(Authenticated(user));
+    } catch (e, st) {
+      debugPrint('Login error: $e\n$st');
+      final msg = e is AuthFailure ? e.message : 'Login failed. Please try again.';
+      emit(AuthError(msg));
+    }
+  } // ← END login()
+
+  Future<void> register(String name, String email, String password) async {
+    debugPrint('Starting registration for: $email');
+    try {
+      emit(AuthLoading());
+      final user = await authRepository.registerWithEmailPassword(name, email, password);
+      if (user == null) {
+        emit(AuthError('Registration failed. Please try again.'));
+        return;
+      }
+      debugPrint('[Auth] Registration successful: ${user.uid}');
+      _currentUser = user;
+      emit(Authenticated(user));
+    } catch (e, st) {
+      debugPrint('Register error: $e\n$st');
+      final msg = e is AuthFailure ? e.message : 'Registration failed. Please try again.';
+      emit(AuthError(msg));
+    }
+  }
+
+  Future<void> logout() async {
+    debugPrint('Logging out user...');
+    emit(AuthLoading());
+    try {
+      await authRepository.logout();
+      debugPrint('Logout successful');
+      _currentUser = null;
+      emit(Unauthenticated());
+    } catch (e, st) {
+      debugPrint('Logout error: $e\n$st');
+      final msg = e is AuthFailure ? e.message : 'Logout failed. Please try again.';
+      emit(AuthError(msg));
+    }
+  }
+
+  Future<String> forgotPassword(String email) async {
+    debugPrint('Sending password reset email to: $email');
+    try {
+      await authRepository.sendPasswordResetEmail(email);
+      debugPrint('Password reset email sent successfully');
+      return 'Password reset email sent. Please check your inbox.';
+    } catch (e, st) {
+      debugPrint('Password reset error: $e\n$st');
+      return e is AuthFailure ? e.message : 'Failed to send reset email. Please try again.';
+    }
+  }
+
+  Future<void> delete() async {
+    debugPrint('Attempting to delete user account...');
+    try {
+      emit(AuthLoading());
+      await authRepository.deleteAccount();
+      debugPrint('Account deleted successfully');
+      _currentUser = null;
+      emit(Unauthenticated());
+    } catch (e, st) {
+      debugPrint('Account deletion error: $e\n$st');
+      final msg = e is AuthFailure ? e.message : 'Account deletion failed. Please try again.';
+      emit(AuthError(msg));
+    }
+  }
+}
+import 'package:sailantro/features/auth/domain/models/app_user.dart';
+
+abstract class AuthState{}
+class AuthInitial extends AuthState {}
+class AuthLoading extends AuthState {}
+class Authenticated extends AuthState {
+  final AppUser user;
+
+  Authenticated(this.user);
+}
+class Unauthenticated extends AuthState {}
+class AuthError extends AuthState {
+  final String message;
+
+  AuthError(this.message);
+}
+
+import 'package:flutter/material.dart';
+
+class AuthProgressIndicatorWidget extends StatelessWidget {
+  const AuthProgressIndicatorWidget({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const Scaffold(
+      body: Center(child: CircularProgressIndicator()),
+    );
+  }
+}
+import 'package:flutter/material.dart';
+
+class AuthTextFieldWidget extends StatefulWidget {
+  final TextEditingController controller;
+  final String labelText;
+  final bool obscureText;
+  final bool autocorrect;
+  final TextInputType? keyboardType;
+  final Widget? prefixIcon;
+  final String? Function(String?)? validator;
+  final TextInputAction? textInputAction;
+  final void Function(String)? onSubmitted;
+
+  const AuthTextFieldWidget({
+    super.key,
+    required this.controller,
+    required this.labelText,
+    required this.obscureText,
+    this.autocorrect = true,
+    this.keyboardType,
+    this.prefixIcon,
+    this.validator,
+    this.textInputAction,
+    this.onSubmitted,
+  });
+
+  @override
+  State<AuthTextFieldWidget> createState() => _AuthTextFieldWidgetState();
+}
+
+class _AuthTextFieldWidgetState extends State<AuthTextFieldWidget> {
+  late bool _obscure;
+
+  @override
+  void initState() {
+    super.initState();
+    _obscure = widget.obscureText;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return TextFormField(
+      controller: widget.controller,
+      obscureText: _obscure,
+      autocorrect: widget.autocorrect,
+      keyboardType: widget.keyboardType,
+      validator: widget.validator,
+      textInputAction: widget.textInputAction ??
+          (widget.obscureText ? TextInputAction.done : TextInputAction.next),
+      onFieldSubmitted: widget.onSubmitted,
+      autofillHints:
+      widget.obscureText ? const [AutofillHints.password] : null,
+      decoration: InputDecoration(
+        hintText: widget.labelText,
+        prefixIcon: widget.prefixIcon,
+        suffixIcon: widget.obscureText
+            ? IconButton(
+          icon: Icon(
+            _obscure ? Icons.visibility_off : Icons.visibility,
+          ),
+          onPressed: () {
+            setState(() {
+              _obscure = !_obscure;
+            });
+          },
+        )
+            : null,
+      ),
+    );
+  }
+}
+import 'package:flutter/material.dart';
+
+class AuthButtonWidget extends StatelessWidget {
+  final VoidCallback? onTap;
+  final String text;
+  final bool isDisable;
+
+  const AuthButtonWidget({super.key, this.onTap, required this.text, this.isDisable = false});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      child: FilledButton(
+        style: ButtonStyle(
+          backgroundColor: WidgetStateProperty.all<Color?>(
+            Theme.of(context).colorScheme.tertiary,
+          ),
+        ),
+        onPressed: !isDisable ? onTap : null,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          child: Text(text),
+        ),
+      ),
+    );
+  }
+}
+
+//          color:
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+import 'package:lottie/lottie.dart';
+import 'package:sailantro/features/auth/presentation/cubits/auth_cubit.dart';
+
+import '../../../../core/router/routes.dart';
+import '../../../../core/utils/validators.dart';
+import '../components/auth_button_widget.dart';
+import '../components/auth_text_field_widget.dart';
+import '../cubits/auth_state.dart';
+
+class RegisterPage extends StatefulWidget {
+  const RegisterPage({super.key});
+
+  @override
+  State<RegisterPage> createState() => _RegisterPageState();
+}
+
+class _RegisterPageState extends State<RegisterPage> {
+  final nameController = TextEditingController();
+  final emailController = TextEditingController();
+  final passwordController = TextEditingController();
+  final confirmPasswordController = TextEditingController();
+  bool _isButtonEnabled = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Add listeners to text controllers
+    nameController.addListener(_updateButtonState);
+    emailController.addListener(_updateButtonState);
+    passwordController.addListener(_updateButtonState);
+    confirmPasswordController.addListener(_updateButtonState);
+  }
+
+  void _updateButtonState() {
+    final name = nameController.text.trim();
+    final email = emailController.text.trim();
+    final password = passwordController.text.trim();
+    final confirmPassword = confirmPasswordController.text.trim();
+
+    final isEnabled =
+        name.isNotEmpty &&
+        isValidEmail(email) &&
+        password.isNotEmpty &&
+        confirmPassword.isNotEmpty &&
+        password == confirmPassword;
+    if (_isButtonEnabled != isEnabled) {
+      setState(() {
+        _isButtonEnabled = isEnabled;
+      });
+    }
+  }
+
+  void register() {
+    final name = nameController.text.trim();
+    final email = emailController.text.trim().toLowerCase();
+    final password = passwordController.text.trim();
+    final confirmPassword = confirmPasswordController.text.trim();
+
+    final authCubit = context.read<AuthCubit>();
+
+    if (name.isEmpty ||
+        email.isEmpty ||
+        password.isEmpty ||
+        confirmPassword.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please complete all fields!")),
+      );
+      return;
+    }
+
+    if (!isValidEmail(email)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please enter a valid email address.")),
+      );
+      return;
+    }
+
+    if (password != confirmPassword) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("Passwords do not match.")));
+      return;
+    }
+
+    authCubit.register(name, email, password);
+  }
+
+  @override
+  void dispose() {
+    nameController.dispose();
+    emailController.dispose();
+    passwordController.dispose();
+    confirmPasswordController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocConsumer<AuthCubit, AuthState>(
+      builder: (BuildContext context, state) {
+        final isLoading = state is AuthLoading;
+        return Scaffold(
+          resizeToAvoidBottomInset: true,
+          body: Stack(
+            children: [
+              _RegistrationForm(
+                nameController: nameController,
+                emailController: emailController,
+                passwordController: passwordController,
+                confirmPasswordController: confirmPasswordController,
+                onRegister: register,
+                isButtonEnabled: _isButtonEnabled,
+              ),
+              if (isLoading)
+                Container(
+                  color: Colors.black.withValues(alpha: 0.3),
+                  child: const Center(child: CircularProgressIndicator()),
+                ),
+            ],
+          ),
+        );
+      },
+      listener: (BuildContext context, state) {
+        if (state is AuthError) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(state.message)));
+        }
+      },
+    );
+  }
+}
+
+class _RegistrationForm extends StatelessWidget {
+  final TextEditingController nameController;
+  final TextEditingController emailController;
+  final TextEditingController passwordController;
+  final TextEditingController confirmPasswordController;
+  final VoidCallback onRegister;
+  final bool isButtonEnabled;
+
+  const _RegistrationForm({
+    required this.nameController,
+    required this.emailController,
+    required this.passwordController,
+    required this.confirmPasswordController,
+    required this.onRegister,
+    required this.isButtonEnabled,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: GestureDetector(
+        onTap: () => FocusScope.of(context).unfocus(),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 25.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              SizedBox(height: 50),
+              Semantics(
+                label: 'Animated sailing boat',
+                child: Lottie.asset(
+                  'assets/lottie/swinging_boat_2.json',
+                  height: 200,
+                  fit: BoxFit.contain,
+                  repeat: true,
+                ),
+              ),
+              const SizedBox(height: 15),
+              Text(
+                "S A I L I N G O",
+                style: TextStyle(
+                  fontSize: 24,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+              ),
+              Text(
+                "Let's create an account for you",
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+              ),
+              const SizedBox(height: 25),
+              AuthTextFieldWidget(
+                controller: nameController,
+                labelText: "Name",
+                obscureText: false,
+                autocorrect: false,
+              ),
+              const SizedBox(height: 10),
+              AuthTextFieldWidget(
+                controller: emailController,
+                labelText: "Email",
+                obscureText: false,
+                autocorrect: false,
+              ),
+              const SizedBox(height: 10),
+              AuthTextFieldWidget(
+                controller: passwordController,
+                labelText: "Password",
+                obscureText: true,
+              ),
+              const SizedBox(height: 10),
+              AuthTextFieldWidget(
+                controller: confirmPasswordController,
+                labelText: "Confirm Password",
+                obscureText: true,
+              ),
+
+              const SizedBox(height: 25),
+              AuthButtonWidget(
+                text: "SIGN UP",
+                onTap: onRegister,
+                isDisable: !isButtonEnabled,
+              ),
+              const SizedBox(height: 25),
+              Row(
+                children: [
+                  Text(
+                    "Already have an account?",
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                  ),
+                  GestureDetector(
+                    onTap: () {
+                      context.go(RoutePaths.authLogin);
+                    },
+                    child: Text(
+                      " Login now",
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.primary,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+import 'package:lottie/lottie.dart';
+
+import '../../../../core/router/routes.dart';
+import '../../../../core/utils/validators.dart';
+import '../components/auth_button_widget.dart';
+import '../components/auth_text_field_widget.dart';
+import '../cubits/auth_cubit.dart';
+import '../cubits/auth_state.dart';
+
+class LoginPage extends StatefulWidget {
+  const LoginPage({super.key});
+
+  @override
+  State<LoginPage> createState() => _LoginPageState();
+}
+
+class _LoginPageState extends State<LoginPage> {
+  final emailController = TextEditingController();
+  final passwordController = TextEditingController();
+  bool _isButtonEnabled = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Add listeners to text controllers
+    emailController.addListener(_updateButtonState);
+    passwordController.addListener(_updateButtonState);
+  }
+
+  void _updateButtonState() {
+    final email = emailController.text.trim();
+    final password = passwordController.text.trim();
+    final isEnabled = password.isNotEmpty && isValidEmail(email);
+    if (_isButtonEnabled != isEnabled) {
+      setState(() {
+        _isButtonEnabled = isEnabled;
+      });
+    }
+  }
+
+  void login() {
+    final String email = emailController.text.trim().toLowerCase();
+    final String password = passwordController.text.trim();
+
+    final authCubit = context.read<AuthCubit>();
+
+    if (email.isNotEmpty && password.isNotEmpty) {
+      authCubit.login(email, password);
+    } else {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Please complete all fields!")));
+    }
+  }
+
+  @override
+  void dispose() {
+    emailController.removeListener(_updateButtonState);
+    passwordController.removeListener(_updateButtonState);
+    emailController.dispose();
+    passwordController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocConsumer<AuthCubit, AuthState>(
+      builder: (BuildContext context, state) {
+        final isLoading = state is AuthLoading;
+        return Scaffold(
+          resizeToAvoidBottomInset: true,
+          body: Stack(
+            children: [
+              _LoginForm(
+                emailController: emailController,
+                passwordController: passwordController,
+                onLogin: login,
+                isButtonEnabled: _isButtonEnabled,
+              ),
+              if (isLoading)
+                Container(
+                  color: Colors.black.withValues(alpha: 0.3),
+                  child: const Center(child: CircularProgressIndicator()),
+                ),
+            ],
+          ),
+        );
+      },
+      listener: (BuildContext context, state) {
+        if (state is AuthError) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(state.message)));
+        }
+      },
+    );
+  }
+}
+
+class _LoginForm extends StatelessWidget {
+  final TextEditingController emailController;
+  final TextEditingController passwordController;
+  final VoidCallback onLogin;
+  final bool isButtonEnabled;
+
+  const _LoginForm({
+    required this.emailController,
+    required this.passwordController,
+    required this.onLogin,
+    required this.isButtonEnabled,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: GestureDetector(
+        onTap: () => FocusScope.of(context).unfocus(),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 25.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              SizedBox(height: 50),
+              Semantics(
+                label: 'Animated sailing boat',
+                child: Lottie.asset(
+                  'assets/lottie/swinging_boat_2.json',
+                  height: 200,
+                  fit: BoxFit.contain,
+                  repeat: true,
+                ),
+              ),
+              const SizedBox(height: 15),
+              Text(
+                "S A I L I N G O",
+                style: TextStyle(
+                  fontSize: 24,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+              ),
+              Text(
+                "Duolingo for sailing",
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+              ),
+              const SizedBox(height: 25),
+              AuthTextFieldWidget(
+                controller: emailController,
+                labelText: "Email",
+                obscureText: false,
+                autocorrect: false,
+              ),
+              const SizedBox(height: 10),
+              AuthTextFieldWidget(
+                controller: passwordController,
+                labelText: "Password",
+                obscureText: true,
+              ),
+              const SizedBox(height: 10),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  GestureDetector(
+                    onTap: () {
+                      context.go(RoutePaths.authForgotPassword);
+                    },
+                    child: Text(
+                      "Forgot Password?",
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.primary,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 15),
+              AuthButtonWidget(
+                text: "LOGIN",
+                onTap: onLogin,
+                isDisable: !isButtonEnabled,
+              ),
+              const SizedBox(height: 25),
+              Row(
+                children: [
+                  Text(
+                    "Don't have an account?",
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                  ),
+                  GestureDetector(
+                    onTap: () {
+                      context.go(RoutePaths.authRegister);
+                    },
+                    child: Text(
+                      " Register now",
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.primary,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+import 'package:lottie/lottie.dart';
+
+import '../../../../core/router/routes.dart';
+import '../../../../core/utils/validators.dart';
+import '../components/auth_button_widget.dart';
+import '../components/auth_text_field_widget.dart';
+import '../cubits/auth_cubit.dart';
+import '../cubits/auth_state.dart';
+
+class ForgotPasswordPage extends StatefulWidget {
+  const ForgotPasswordPage({super.key});
+
+  @override
+  State<ForgotPasswordPage> createState() => _ForgotPasswordPageState();
+}
+
+class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
+  final emailController = TextEditingController();
+  bool _isButtonEnabled = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Add listeners to text controllers
+    emailController.addListener(_updateButtonState);
+  }
+
+  void _updateButtonState() {
+    final email = emailController.text.trim();
+    final isEnabled = isValidEmail(email);
+    if (_isButtonEnabled != isEnabled) {
+      setState(() {
+        _isButtonEnabled = isEnabled;
+      });
+    }
+  }
+
+  void rest() {
+    final String email = emailController.text.trim().toLowerCase();
+
+    final authCubit = context.read<AuthCubit>();
+
+    if (email.isNotEmpty) {
+      authCubit.forgotPassword(email);
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Please check your email!")));
+    } else {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Please complete all fields!")));
+    }
+  }
+
+  @override
+  void dispose() {
+    emailController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocConsumer<AuthCubit, AuthState>(
+      builder: (BuildContext context, state) {
+        final isLoading = state is AuthLoading;
+        return Scaffold(
+          resizeToAvoidBottomInset: true,
+          body: Stack(
+            children: [
+              _ForgotPasswordForm(
+                emailController: emailController,
+                onRest: rest,
+                isButtonEnabled: _isButtonEnabled,
+              ),
+              if (isLoading)
+                Container(
+                  color: Colors.black.withValues(alpha: 0.3),
+                  child: const Center(child: CircularProgressIndicator()),
+                ),
+            ],
+          ),
+        );
+      },
+      listener: (BuildContext context, state) {
+        if (state is AuthError) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(state.message)));
+        }
+      },
+    );
+  }
+}
+
+class _ForgotPasswordForm extends StatelessWidget {
+  final TextEditingController emailController;
+  final VoidCallback onRest;
+  final bool isButtonEnabled;
+
+  const _ForgotPasswordForm({
+    required this.emailController,
+    required this.onRest,
+    required this.isButtonEnabled,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: GestureDetector(
+        onTap: () => FocusScope.of(context).unfocus(),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 25.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              SizedBox(height: 50),
+              Semantics(
+                label: 'Animated sailing boat',
+                child: Lottie.asset(
+                  'assets/lottie/swinging_boat_2.json',
+                  height: 200,
+                  fit: BoxFit.contain,
+                  repeat: true,
+                ),
+              ),
+              const SizedBox(height: 15),
+              Text(
+                "S A I L I N G O",
+                style: TextStyle(
+                  fontSize: 24,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+              ),
+              Text(
+                "Reset password",
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+              ),
+              const SizedBox(height: 25),
+              AuthTextFieldWidget(
+                controller: emailController,
+                labelText: "Email",
+                obscureText: false,
+                autocorrect: false,
+              ),
+              const SizedBox(height: 15),
+              AuthButtonWidget(
+                text: "RESET PASSWORD",
+                onTap: onRest,
+                isDisable: !isButtonEnabled,
+              ),
+              const SizedBox(height: 25),
+              Row(
+                children: [
+                  Text(
+                    "Already have an account?",
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                  ),
+                  GestureDetector(
+                    onTap: () {
+                      context.go(RoutePaths.authLogin);
+                    },
+                    child: Text(
+                      " Login now",
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.primary,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+// File generated by FlutterFire CLI.
+// ignore_for_file: type=lint
+import 'package:firebase_core/firebase_core.dart' show FirebaseOptions;
+import 'package:flutter/foundation.dart'
+    show defaultTargetPlatform, kIsWeb, TargetPlatform;
+
+/// Default [FirebaseOptions] for use with your Firebase apps.
+///
+/// Example:
+/// ```dart
+/// import 'firebase_options.dart';
+/// // ...
+/// await Firebase.initializeApp(
+///   options: DefaultFirebaseOptions.currentPlatform,
+/// );
+/// ```
+class DefaultFirebaseOptions {
+  static FirebaseOptions get currentPlatform {
+    if (kIsWeb) {
+      throw UnsupportedError(
+        'DefaultFirebaseOptions have not been configured for web - '
+        'you can reconfigure this by running the FlutterFire CLI again.',
+      );
+    }
+    switch (defaultTargetPlatform) {
+      case TargetPlatform.android:
+        return android;
+      case TargetPlatform.iOS:
+        return ios;
+      case TargetPlatform.macOS:
+        throw UnsupportedError(
+          'DefaultFirebaseOptions have not been configured for macos - '
+          'you can reconfigure this by running the FlutterFire CLI again.',
+        );
+      case TargetPlatform.windows:
+        throw UnsupportedError(
+          'DefaultFirebaseOptions have not been configured for windows - '
+          'you can reconfigure this by running the FlutterFire CLI again.',
+        );
+      case TargetPlatform.linux:
+        throw UnsupportedError(
+          'DefaultFirebaseOptions have not been configured for linux - '
+          'you can reconfigure this by running the FlutterFire CLI again.',
+        );
+      default:
+        throw UnsupportedError(
+          'DefaultFirebaseOptions are not supported for this platform.',
+        );
+    }
+  }
+
+  static const FirebaseOptions android = FirebaseOptions(
+    apiKey: 'AIzaSyDTHc0yJJ0eM_bUYMW7LJ0dNRAHvhjfYEA',
+    appId: '1:395316888728:android:8b11d447f392ad5345fced',
+    messagingSenderId: '395316888728',
+    projectId: 'sailantro-d8a5e',
+    storageBucket: 'sailantro-d8a5e.firebasestorage.app',
+  );
+
+  static const FirebaseOptions ios = FirebaseOptions(
+    apiKey: 'AIzaSyACshIOMp3170bP59yEkdKj6dwAF_lVp60',
+    appId: '1:395316888728:ios:a474ae534fbf897945fced',
+    messagingSenderId: '395316888728',
+    projectId: 'sailantro-d8a5e',
+    storageBucket: 'sailantro-d8a5e.firebasestorage.app',
+    iosBundleId: 'com.sailantro',
+  );
+}
+import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:sailantro/features/auth/data/firebase_auth_repository.dart';
+import 'package:sailantro/features/auth/presentation/cubits/auth_cubit.dart';
+import 'package:sailantro/firebase_options.dart';
+import 'package:sailantro/themes/dark_mode.dart';
+import 'package:sailantro/themes/light_mode.dart';
+
+import 'core/router/app_router.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  runApp(MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  MyApp({super.key});
+
+  final firebaseAuthRepo = FirebaseAuthRepository();
+
+  @override
+  Widget build(BuildContext context) {
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider<AuthCubit>(
+          create: (context) =>
+          AuthCubit(authRepository: firebaseAuthRepo)..checkAuth(),
+        ),
+      ],
+      child: Builder(
+        builder: (context) {
+          final authCubit = context.read<AuthCubit>();
+          return MaterialApp.router(
+            debugShowCheckedModeBanner: false,
+            routerConfig: AppRouter.router(authCubit),
+            theme: lightMode,
+            darkTheme: darkMode,
+            themeMode: ThemeMode.light,
+          );
+        },
+      ),
+    );
+  }
+}
+import 'package:flutter/material.dart';
+
+ThemeData darkMode = ThemeData(
+  colorScheme: ColorScheme.dark(
+    // Primary color: A deep, mystical blue, reminiscent of Pandora's bioluminescent elements
+    primary: const Color(0xFF1E88E5), // A vibrant blue
+
+    // Secondary color: A darker, muted blue-green for background elements
+    secondary: const Color(0xFF004D40), // Dark teal/green
+
+    // Tertiary color: A lighter, more luminous green for accents and interactive elements
+    tertiary: const Color(0xFF8BC34A), // Lime green/bright green
+
+    // Inverse Primary: A soft, ethereal glow for text or icons that need to stand out against dark backgrounds
+    inversePrimary: const Color(0xFFE0F7FA), // Light cyan/pale blue
+
+    // Surface color: For cards, sheets, and other elevated surfaces – a slightly lighter shade of the secondary
+    surface: const Color(0xFF00362C), // Darker teal
+
+    // Error color: A contrasting but still somewhat naturalistic red for warnings/errors
+    error: const Color(0xFFD32F2F), // Muted red
+
+    // OnPrimary: Color for text and icons on the primary color
+    onPrimary: Colors.white,
+
+    // OnSecondary: Color for text and icons on the secondary color
+    onSecondary: Colors.white,
+
+    // OnSurface: Color for text and icons on the surface color
+    onSurface: Colors.white70,
+
+    // OnError: Color for text and icons on the error color
+    onError: Colors.white,
+  ),
+  // Scaffold background: The main background color for your app's screens
+  scaffoldBackgroundColor: const Color(0xFF0D0D0D), // Very dark, almost black
+  // You can also adjust text themes, button themes, etc., here for more detailed styling
+  textTheme: const TextTheme(
+    bodyLarge: TextStyle(color: Color(0xFFE0F7FA)), // Light text for general content
+    bodyMedium: TextStyle(color: Color(0xFFB2EBF2)), // Slightly less bright text
+    headlineSmall: TextStyle(color: Color(0xFF8BC34A)), // Green accents for headlines
+    // Define other text styles as needed
+  ),
+  // Further theming for elements like buttons, app bars, etc.
+  appBarTheme: const AppBarTheme(
+    backgroundColor: Color(0xFF004D40), // Secondary color for AppBar
+    foregroundColor: Colors.white, // Text/icon color on AppBar
+  ),
+  buttonTheme: ButtonThemeData(
+    buttonColor: const Color(0xFF1E88E5), // Primary blue for buttons
+    textTheme: ButtonTextTheme.primary,
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(8.0), // Rounded button corners
+    ),
+  ),
+  // Add more theme properties here for a complete design system
+);
+import 'package:flutter/material.dart';
+
+/// Lottie-matched Nautical Palette
+const _boatBlue   = Color(0xFF0E5AA7); // hull / primary
+const _seaCyan = Color(0xFF92D3F5); // waves / secondary
+const _sunYellow = Color(0xFFECBF4C); // sun / tertiary
+const _sailWhite  = Color(0xFFFFFFFF); // sails / surfaces
+const _foam       = Color(0xFFCAE2F6); // bg foam
+
+const _deepNavy   = Color(0xFF0B2942); // on-colors, headings
+const _reefCoral  = Color(0xFFFF6B6B); // errors
+
+final lightMode = ThemeData(
+  useMaterial3: true,
+  colorScheme: ColorScheme.fromSeed(
+    seedColor: _boatBlue,
+    brightness: Brightness.light,
+  ).copyWith(
+    primary: _boatBlue,
+    onPrimary: Colors.white,
+    secondary: _seaCyan,
+    onSecondary: _deepNavy,
+    tertiary: _sunYellow,
+    onTertiary: _deepNavy,
+    surface: _sailWhite,
+    onSurface: _deepNavy,
+    error: _reefCoral,
+    onError: Colors.white,
+    primaryContainer: _boatBlue.withAlpha(12),
+    secondaryContainer: _seaCyan.withAlpha(15),
+    tertiaryContainer: _sunYellow.withAlpha(18),
+    outline: _deepNavy.withAlpha(20),
+    outlineVariant: const Color(0xFFE2EAF4),
+    inversePrimary: _seaCyan,
+    inverseSurface: const Color(0xFF0F2130),
+    onInverseSurface: Colors.white,
+    shadow: Colors.black12,
+    scrim: Colors.black54,
+  ),
+
+  scaffoldBackgroundColor: _foam,
+
+  // iOS-leaning typography with strong titles (Duolingo vibe)
+  textTheme: Typography.blackCupertino.copyWith(
+    titleLarge: const TextStyle(fontWeight: FontWeight.w800, letterSpacing: .2),
+    titleMedium: const TextStyle(fontWeight: FontWeight.w700),
+    bodyLarge: const TextStyle(height: 1.25),
+  ),
+
+  appBarTheme: const AppBarTheme(
+    backgroundColor: _foam,
+    foregroundColor: _deepNavy,
+    elevation: 0,
+    centerTitle: true,
+  ),
+
+  inputDecorationTheme: InputDecorationTheme(
+    filled: true,
+    fillColor: const Color(0xFFF6FAFF),
+    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+    border: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(14),
+      borderSide: BorderSide.none,
+    ),
+    prefixIconColor: _boatBlue,
+  ),
+
+  elevatedButtonTheme: ElevatedButtonThemeData(
+    style: ElevatedButton.styleFrom(
+      minimumSize: const Size.fromHeight(52),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+      backgroundColor: _boatBlue,
+      foregroundColor: Colors.white,
+      textStyle: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800, letterSpacing: .2),
+    ),
+  ),
+
+  filledButtonTheme: FilledButtonThemeData(
+    style: FilledButton.styleFrom(
+      minimumSize: const Size.fromHeight(48),
+      backgroundColor: _seaCyan,
+      foregroundColor: _deepNavy,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+      textStyle: const TextStyle(fontWeight: FontWeight.w700),
+    ),
+  ),
+
+  snackBarTheme: SnackBarThemeData(
+    behavior: SnackBarBehavior.floating,
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+    backgroundColor: _boatBlue,
+    contentTextStyle: const TextStyle(color: Colors.white),
+  ),
+);

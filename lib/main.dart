@@ -8,6 +8,8 @@ import 'package:sailantro/themes/dark_mode.dart';
 import 'package:sailantro/themes/light_mode.dart';
 
 import 'core/router/app_router.dart';
+import 'features/home/data/mock_course_repository.dart';
+import 'features/home/presentation/cubits/course_cubit.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -19,6 +21,7 @@ class MyApp extends StatelessWidget {
   MyApp({super.key});
 
   final firebaseAuthRepo = FirebaseAuthRepository();
+  final courseRepo = MockCourseRepository();
 
   @override
   Widget build(BuildContext context) {
@@ -27,6 +30,9 @@ class MyApp extends StatelessWidget {
         BlocProvider<AuthCubit>(
           create: (context) =>
           AuthCubit(authRepository: firebaseAuthRepo)..checkAuth(),
+        ),
+        BlocProvider<CourseCubit>(
+          create: (_) => CourseCubit(repository: courseRepo)..loadCourse('ray_day_skipper_theory'),
         ),
       ],
       child: Builder(

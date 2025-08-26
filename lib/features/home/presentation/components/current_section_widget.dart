@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:sailantro/core/utils/color_ext.dart';
 
 import '../../domain/models/section.dart';
@@ -60,7 +61,7 @@ class CurrentSectionWidget extends StatelessWidget {
                 border: Border(left: BorderSide(color: color, width: 2.0)),
               ),
               child: Center(
-                child: Icon(Icons.lightbulb, color: Colors.white,),
+                child: SvgPicture.asset('assets/svg/theory.svg', width: 42, height: 42),
               ),
             ),
           ],

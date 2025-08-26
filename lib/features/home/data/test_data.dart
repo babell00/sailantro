@@ -1,10 +1,10 @@
 import 'dart:ui';
 
-import '../../../../themes/light_mode.dart';
-import '../../domain/models/challenge.dart';
-import '../../domain/models/course.dart';
-import '../../domain/models/question.dart';
-import '../../domain/models/section.dart';
+import '../../../themes/light_mode.dart';
+import '../domain/models/challenge.dart';
+import '../domain/models/course.dart';
+import '../domain/models/question.dart';
+import '../domain/models/section.dart';
 
 final testCourse = Course(
     id: 'ray_day_skipper_theory',
