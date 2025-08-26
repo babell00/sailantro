@@ -17,6 +17,7 @@ final testData = <Section>[
         id: 'ch_safety_intro',
         title: 'Safety Gear · Intro',
         order: 100,
+        iconPath: 'assets/svg/chip/chip_4ECDC4.svg',
         questions: const [
           Question(
             id: 'q_lifejackets_required',
@@ -39,6 +40,7 @@ final testData = <Section>[
         id: 'ch_liferaft_basics',
         title: 'Liferaft Basics',
         order: 200,
+        iconPath: 'assets/svg/chip/chip_4ECDC4.svg',
         questions: const [
           Question(
             id: 'q_liferaft_check',
@@ -56,6 +58,7 @@ final testData = <Section>[
         id: 'ch_ppe_match',
         title: 'PPE Match',
         order: 300,
+        iconPath: 'assets/svg/chip/chip_4ECDC4.svg',
         questions: const [
           Question(
             id: 'q_ppe_match',
@@ -76,6 +79,7 @@ final testData = <Section>[
         id: 'ch_safety_review',
         title: 'Safety Review',
         order: 400,
+        iconPath: 'assets/svg/chip/chip_4ECDC4.svg',
         questions: const [
           Question(
             id: 'q_safety_multi',
@@ -104,6 +108,7 @@ final testData = <Section>[
         id: 'ch_flares',
         title: 'Flares & Smoke',
         order: 100,
+        iconPath: 'assets/svg/chip/chip_4ECDC4.svg',
         questions: const [
           Question(
             id: 'q_distress_flare',
@@ -125,6 +130,7 @@ final testData = <Section>[
         id: 'ch_radio_mayday',
         title: 'MAYDAY Voice',
         order: 200,
+        iconPath: 'assets/svg/chip/chip_4ECDC4.svg',
         questions: const [
           Question(
             id: 'q_mayday_order',
@@ -147,6 +153,7 @@ final testData = <Section>[
         id: 'ch_dsc_basics',
         title: 'DSC Basics',
         order: 300,
+        iconPath: 'assets/svg/chip/chip_4ECDC4.svg',
         questions: const [
           Question(
             id: 'q_dsc_true_false',
@@ -176,6 +183,7 @@ final testData = <Section>[
         id: 'ch_lj_types',
         title: 'Types & Buoyancy',
         order: 100,
+        iconPath: 'assets/svg/chip/chip_4ECDC4.svg',
         questions: const [
           Question(
             id: 'q_150n_when',
@@ -198,6 +206,7 @@ final testData = <Section>[
         id: 'ch_lj_care',
         title: 'Care & Servicing',
         order: 200,
+        iconPath: 'assets/svg/chip/chip_4ECDC4.svg',
         questions: const [
           Question(
             id: 'q_co2_check',
@@ -219,6 +228,7 @@ final testData = <Section>[
         id: 'ch_lj_fit',
         title: 'Fitting & Adjustment',
         order: 300,
+        iconPath: 'assets/svg/chip/chip_4ECDC4.svg',
         questions: const [
           Question(
             id: 'q_crotch_straps',
@@ -251,6 +261,7 @@ final testData = <Section>[
         id: 'ch_classes_of_fire',
         title: 'Classes of Fire',
         order: 100,
+        iconPath: 'assets/svg/chip/chip_4ECDC4.svg',
         questions: const [
           Question(
             id: 'q_class_b',
@@ -268,6 +279,7 @@ final testData = <Section>[
         id: 'ch_ext_match',
         title: 'Extinguisher Match',
         order: 200,
+        iconPath: 'assets/svg/chip/chip_4ECDC4.svg',
         questions: const [
           Question(
             id: 'q_ext_match',
@@ -288,6 +300,8 @@ final testData = <Section>[
         id: 'ch_eng_compartment',
         title: 'Engine Compartment',
         order: 300,
+        iconPath: 'assets/svg/chip/chip_4ECDC4.svg',
+        isLocked: true,
         questions: const [
           Question(
             id: 'q_never_open',
@@ -320,6 +334,8 @@ final testData = <Section>[
         id: 'ch_prestart',
         title: 'Pre-start Checks',
         order: 100,
+        iconPath: 'assets/svg/chip/chip_4ECDC4.svg',
+        isLocked: true,
         questions: const [
           Question(
             id: 'q_prestart_list',
@@ -342,6 +358,8 @@ final testData = <Section>[
         id: 'ch_mob_sight',
         title: 'MOB – First Actions',
         order: 200,
+        iconPath: 'assets/svg/chip/chip_4ECDC4.svg',
+        isLocked: true,
         questions: const [
           Question(
             id: 'q_mob_order',
@@ -363,6 +381,8 @@ final testData = <Section>[
         id: 'ch_pickup',
         title: 'Pick-up Under Power',
         order: 300,
+        iconPath: 'assets/svg/chip/chip_4ECDC4.svg',
+        isLocked: true,
         questions: const [
           Question(
             id: 'q_approach_side',

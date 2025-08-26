@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import '../../domain/models/challenge.dart';
@@ -8,6 +9,7 @@ import '../utils/path_layout.dart';
 class ChallengeChip extends StatelessWidget {
   final Challenge challenge;
   final Section section;
+
   /// IMPORTANT: This must be a GLOBAL index (not 0..n per section).
   final int visualIndex;
   final Color bgColor;
@@ -38,23 +40,60 @@ class ChallengeChip extends StatelessWidget {
             border: Border(bottom: BorderSide(color: Colors.white10, width: 6)),
             borderRadius: BorderRadius.all(Radius.circular(36)),
           ),
-          child: ElevatedButton(
-            onPressed: challenge.isLocked ? null : () {}, // no navigation yet
-            style: ElevatedButton.styleFrom(
-              backgroundColor: bgColor,
-              fixedSize: const Size(70, 70),
-              elevation: 0,
-              padding: EdgeInsets.zero,
-              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              minimumSize: Size.zero,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(36)),
-            ),
-            // child: const Icon(Icons.star, color: Colors.white, size: 30,),
-              child: SvgPicture.asset('assets/svg/anchor.svg', width: 50, height: 50),
+          child: MySvgIconWithEffects(
+            assetPath: challenge.iconPath,
+            isDisabled: challenge.isLocked,
 
           ),
         ),
       ),
     );
+  }
+}
+
+class MySvgIconWithEffects extends StatelessWidget {
+  final bool isDisabled;
+  final String assetPath;
+
+  const MySvgIconWithEffects({
+    super.key,
+    this.isDisabled = false,
+    required this.assetPath,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (isDisabled) {
+      return ImageFiltered(
+        imageFilter: ImageFilter.blur(sigmaX: 1.5, sigmaY: 1.5),
+        child: ColorFiltered(
+          colorFilter: const ColorFilter.matrix(<double>[
+            0.2126,
+            0.7152,
+            0.0722,
+            0,
+            0,
+            0.2126,
+            0.7152,
+            0.0722,
+            0,
+            0,
+            0.2126,
+            0.7152,
+            0.0722,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+          ]),
+          child: SvgPicture.asset(assetPath, width: 64, height: 64),
+        ),
+      );
+    } else {
+      return SvgPicture.asset(assetPath, width: 64, height: 64);
+    }
   }
 }
