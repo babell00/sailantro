@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import '../../domain/models/challenge.dart';
 import '../../domain/models/section.dart';
 import '../utils/path_layout.dart';
@@ -41,14 +42,16 @@ class ChallengeChip extends StatelessWidget {
             onPressed: challenge.isLocked ? null : () {}, // no navigation yet
             style: ElevatedButton.styleFrom(
               backgroundColor: bgColor,
-              fixedSize: const Size(56, 48),
+              fixedSize: const Size(70, 70),
               elevation: 0,
               padding: EdgeInsets.zero,
               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
               minimumSize: Size.zero,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(36)),
             ),
-            child: const Icon(Icons.flag, color: Colors.white),
+            // child: const Icon(Icons.star, color: Colors.white, size: 30,),
+              child: SvgPicture.asset('assets/svg/anchor.svg', width: 50, height: 50),
+
           ),
         ),
       ),

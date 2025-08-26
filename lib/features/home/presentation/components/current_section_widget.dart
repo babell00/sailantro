@@ -50,14 +50,12 @@ class CurrentSectionWidget extends StatelessWidget {
               ),
             ),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              padding: const EdgeInsets.symmetric(horizontal: 24.0),
               decoration: BoxDecoration(
                 border: Border(left: BorderSide(color: color, width: 2.0)),
               ),
-              child: Container(
-                width: 20.0,
-                height: 20.0,
-                color: Colors.yellow, // A visual indicator
+              child: Center(
+                child: Icon(Icons.lightbulb, color: Colors.white,),
               ),
             ),
           ],

@@ -84,39 +84,40 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
-      appBar: HomeTopBar(
-        onJumpToExample: () => jumpToSection(2),
-        onLogout: () => context.read<AuthCubit>().logout(),
-      ),
-      body: Stack(
-        children: [
-          const HomeBackground(
-            asset: 'assets/lottie/water.json',
-            blurSigma: 8,
-            opacity: 0.25,
-          ),
-          HomeContentList(
-            headerHeight: _headerHeight,
-            headerTopPadding: _headerTopPadding,
-            testDataLen: testData.length,
-            buildItem: (secIdx) => SectionWidget(
-              section: testData[secIdx],
-              waveStartIndex: _waveStarts[secIdx], // chips use waveStartIndex + i
+      // appBar: HomeTopBar(
+      //   onJumpToExample: () => jumpToSection(2),
+      //   onLogout: () => context.read<AuthCubit>().logout(),
+      // ),
+      body: SafeArea(
+        child: Stack(
+          children: [
+            const HomeBackground(
+              asset: 'assets/lottie/water.json',
+              blurSigma: 8,
+              opacity: 0.25,
             ),
-            itemScrollController: itemScrollController,
-            itemPositionsListener: itemPositionsListener,
-          ),
-          HomePinnedHeader(
-            headerHeight: _headerHeight,
-            headerTopPadding: _headerTopPadding,
-            child: CurrentSectionWidget(section: testData[iCurrentSection]),
-            // If your CurrentSectionWidget needs re-build animation on change:
-            // child: AnimatedSwitcher(
-            //   duration: const Duration(milliseconds: 180),
-            //   child: CurrentSectionWidget(key: ValueKey(iCurrentSection), section: testData[iCurrentSection]),
-            // ),
-          ),
-        ],
+            HomeContentList(
+              headerHeight: _headerHeight,
+              headerTopPadding: _headerTopPadding,
+              testDataLen: testData.length,
+              buildItem: (secIdx) => SectionWidget(
+                section: testData[secIdx],
+                waveStartIndex: _waveStarts[secIdx], // chips use waveStartIndex + i
+              ),
+              itemScrollController: itemScrollController,
+              itemPositionsListener: itemPositionsListener,
+            ),
+            HomePinnedHeader(
+              headerTopPadding: _headerTopPadding,
+              child: CurrentSectionWidget(section: testData[iCurrentSection]),
+              // If your CurrentSectionWidget needs re-build animation on change:
+              // child: AnimatedSwitcher(
+              //   duration: const Duration(milliseconds: 180),
+              //   child: CurrentSectionWidget(key: ValueKey(iCurrentSection), section: testData[iCurrentSection]),
+              // ),
+            ),
+          ],
+        ),
       ),
       bottomNavigationBar: const HomeBottomNav(),
     );
@@ -224,13 +225,11 @@ class HomeContentList extends StatelessWidget {
 }
 
 class HomePinnedHeader extends StatelessWidget {
-  final double headerHeight;
   final double headerTopPadding;
   final Widget child;
-
   const HomePinnedHeader({
     super.key,
-    required this.headerHeight,
+
     required this.headerTopPadding,
     required this.child,
   });
@@ -241,7 +240,7 @@ class HomePinnedHeader extends StatelessWidget {
       top: headerTopPadding,
       left: 4,
       right: 4,
-      child: SizedBox(height: headerHeight, child: child),
+      child: SizedBox(child: child),
     );
   }
 }
@@ -252,7 +251,8 @@ class HomeBottomNav extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(border: Border(top: BorderSide(color: Color(0xFF2D3D41)))),
+      decoration: const BoxDecoration(border: Border(top: BorderSide(color: Color(
+          0xFFC7F5F8)))),
       child: BottomNavigationBar(
         backgroundColor: Theme.of(context).colorScheme.surface,
         elevation: 0,
@@ -261,23 +261,23 @@ class HomeBottomNav extends StatelessWidget {
         type: BottomNavigationBarType.fixed,
         items: [
           BottomNavigationBarItem(
-            icon: SvgPicture.asset('assets/svg/inicio.svg', width: 32, height: 32),
+            icon: SvgPicture.asset('assets/svg/lighthouse.svg', width: 32, height: 32),
             label: '',
           ),
           BottomNavigationBarItem(
-            icon: SvgPicture.asset('assets/svg/practica.svg', width: 32, height: 32),
+            icon: SvgPicture.asset('assets/svg/helm.svg', width: 32, height: 32),
             label: '',
           ),
           BottomNavigationBarItem(
-            icon: SvgPicture.asset('assets/svg/escudo.svg', width: 32, height: 32),
+            icon: SvgPicture.asset('assets/svg/trophy.svg', width: 32, height: 32),
             label: '',
           ),
           BottomNavigationBarItem(
-            icon: SvgPicture.asset('assets/svg/cofre.svg', width: 32, height: 32),
+            icon: SvgPicture.asset('assets/svg/treasure.svg', width: 32, height: 32),
             label: '',
           ),
           BottomNavigationBarItem(
-            icon: SvgPicture.asset('assets/svg/mas.svg', width: 32, height: 32),
+            icon: SvgPicture.asset('assets/svg/pirate.svg', width: 32, height: 32),
             label: '',
           ),
         ],
