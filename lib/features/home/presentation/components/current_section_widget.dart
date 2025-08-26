@@ -18,13 +18,14 @@ class CurrentSectionWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final color = section.colorArgb.toColor();
 
-    return Container(
+    return AnimatedContainer(
       margin: const EdgeInsets.symmetric(horizontal: 16.0),
       decoration: BoxDecoration(
         color: color,
         borderRadius: BorderRadius.circular(16.0),
         border: Border(bottom: BorderSide(color: color, width: 4.0)),
       ),
+      duration: Duration(milliseconds: 580),
       child: IntrinsicHeight(
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -57,9 +58,9 @@ class CurrentSectionWidget extends StatelessWidget {
             ),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 24.0),
-              decoration: BoxDecoration(
-                border: Border(left: BorderSide(color: color, width: 2.0)),
-              ),
+              // decoration: BoxDecoration(
+              //   border: Border(left: BorderSide(color: color, width: 2.0)),
+              // ),
               child: Center(
                 child: SvgPicture.asset('assets/svg/theory.svg', width: 42, height: 42),
               ),

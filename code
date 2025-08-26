@@ -98,725 +98,24 @@ class AppRouter {
     );
   }
 }
-import 'package:sailantro/features/home/domain/models/section.dart';
+import 'package:sailantro/features/home/data/test_data.dart';
 
-class Course {
-  final String id;
-  final String name;
-  final List<Section> sections;
+import '../domain/models/course.dart';
+import '../domain/repository/course_repository.dart';
 
-
-  const Course({
-    required this.id,
-    required this.name,
-    required this.sections
-  });
-}import 'challenge.dart';
-
-class Section {
-  final String id;
-  final int unit;
-  final int index;
-  final String title;
-  final int colorArgb;
-
-  final List<Challenge> challenges;
-
-  const Section({
-    required this.id,
-    required this.unit,
-    required this.index,
-    required this.title,
-    required this.colorArgb,
-    required this.challenges,
-  });
-}enum QuestionType {
-  mcqSingle,
-  mcqMulti,
-  matchPairs,
-  ordering,
-}
-
-class Question {
-  final String id;
-  final QuestionType type;
-  final int order;
-  final String stem;
-  final String? imageUrl;
-  final Map<String, dynamic> payload;
-
-  const Question({
-    required this.id,
-    required this.type,
-    required this.order,
-    required this.stem,
-    this.imageUrl,
-    this.payload = const {},
-  });
-}import 'question.dart';
-
-class Challenge {
-  final String id;
-  final String title;
-  final int order;
-  final bool isLocked;
-  final int? xpReward;
-  final String iconPath;
-  final List<Question> questions;
-
-
-  const Challenge({
-    required this.id,
-    required this.title,
-    required this.order,
-    required this.questions,
-    required this.iconPath,
-    this.isLocked = false,
-    this.xpReward,
-  });
-}import 'package:flutter/material.dart';
-
-class SectionTheme {
-  final Color color;
-  const SectionTheme(this.color);
-}import 'dart:math' as math;
-
-class PathLayout {
-  /// Horizontal offset in pixels for a given index.
-  /// Use a GLOBAL index (kept across sections) for a continuous wave.
-  static double dx({
-    required int index,
-    double amplitude = 100.0,         // curve width
-    double stepRads = math.pi / 2,    // center→right→center→left…
-    double phase = -math.pi / 2,      // start a bit left of center
-  }) {
-    return amplitude * math.sin(phase + index * stepRads);
-  }
-}
-import 'dart:math' as math;
-import 'dart:ui';
-import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
-import '../../domain/models/challenge.dart';
-import '../../domain/models/section.dart';
-import '../utils/path_layout.dart';
-
-class ChallengeChip extends StatelessWidget {
-  final Challenge challenge;
-  final Section section;
-
-  /// IMPORTANT: This must be a GLOBAL index (not 0..n per section).
-  final int visualIndex;
-  final Color bgColor;
-
-  const ChallengeChip({
-    super.key,
-    required this.challenge,
-    required this.section,
-    required this.visualIndex,
-    required this.bgColor,
-  });
-
+class MockCourseRepository implements CourseRepository {
   @override
-  Widget build(BuildContext context) {
-    final dx = PathLayout.dx(
-      index: visualIndex,
-      amplitude: 100.0,
-      stepRads: math.pi / 2,
-      phase: -math.pi / 2,
-    );
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 24.0),
-      child: Transform.translate(
-        offset: Offset(dx, 0),
-        child: DecoratedBox(
-          decoration: const BoxDecoration(
-            border: Border(bottom: BorderSide(color: Colors.white10, width: 6)),
-            borderRadius: BorderRadius.all(Radius.circular(36)),
-          ),
-          child: MySvgIconWithEffects(
-            assetPath: challenge.iconPath,
-            isDisabled: challenge.isLocked,
-
-          ),
-        ),
-      ),
-    );
+  Future<Course> getCourse(String courseId) async {
+    await Future.delayed(const Duration(milliseconds: 300));
+    return testCourse;
   }
-}
+}import 'dart:ui';
 
-class MySvgIconWithEffects extends StatelessWidget {
-  final bool isDisabled;
-  final String assetPath;
-
-  const MySvgIconWithEffects({
-    super.key,
-    this.isDisabled = false,
-    required this.assetPath,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    if (isDisabled) {
-      return ImageFiltered(
-        imageFilter: ImageFilter.blur(sigmaX: 1.5, sigmaY: 1.5),
-        child: ColorFiltered(
-          colorFilter: const ColorFilter.matrix(<double>[
-            0.2126,
-            0.7152,
-            0.0722,
-            0,
-            0,
-            0.2126,
-            0.7152,
-            0.0722,
-            0,
-            0,
-            0.2126,
-            0.7152,
-            0.0722,
-            0,
-            0,
-            0,
-            0,
-            0,
-            1,
-            0,
-          ]),
-          child: SvgPicture.asset(assetPath, width: 64, height: 64),
-        ),
-      );
-    } else {
-      return SvgPicture.asset(assetPath, width: 64, height: 64);
-    }
-  }
-}
-import 'package:flutter/material.dart';
-
-class SectionTitleWidget extends StatelessWidget {
-  final String title;
-
-  const SectionTitleWidget({super.key, required this.title});
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        const Expanded(child: Divider(color: Color(0xFF2D3D41))),
-        const SizedBox(width: 16),
-        Text(
-          title,
-          style: const TextStyle(
-            color: Color(0xFF52656D),
-            fontWeight: FontWeight.bold,
-            fontSize: 18.0,
-          ),
-        ),
-        const SizedBox(width: 16),
-        const Expanded(child: Divider(color: Color(0xFF2D3D41))),
-      ],
-    );
-  }
-}
-import 'package:flutter/material.dart';
-import 'package:sailantro/core/utils/color_ext.dart';
-
-import '../../domain/models/section.dart';
-
-class CurrentSectionWidget extends StatelessWidget {
-  final String courseName;
-  final Section section;
-
-  const CurrentSectionWidget({
-    super.key,
-    required this.courseName,
-    required this.section
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final color = section.colorArgb.toColor();
-
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16.0),
-      decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(16.0),
-        border: Border(bottom: BorderSide(color: color, width: 4.0)),
-      ),
-      child: IntrinsicHeight(
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(12.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(courseName,
-                      style: const TextStyle(
-                        color: Colors.white70,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    SizedBox(height: 8,),
-                    Text(
-                      section.title,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 18.0,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0),
-              decoration: BoxDecoration(
-                border: Border(left: BorderSide(color: color, width: 2.0)),
-              ),
-              child: Center(
-                child: Icon(Icons.lightbulb, color: Colors.white,),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-import 'package:flutter/material.dart';
-import 'package:sailantro/core/utils/color_ext.dart';
-import 'package:sailantro/features/home/presentation/components/section_title_widget.dart';
-import '../../domain/models/section.dart';
-import 'challenge_chip.dart';
-
-class SectionWidget extends StatelessWidget {
-  final Section section;
-
-  /// Where the wave should start for this section.
-  /// Pass a GLOBAL running index from the page.
-  final int waveStartIndex;
-
-  const SectionWidget({
-    super.key,
-    required this.section,
-    required this.waveStartIndex,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final color = section.colorArgb.toColor();
-
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        SectionTitleWidget(title: section.title),
-        const SizedBox(height: 24.0),
-        for (var i = 0; i < section.challenges.length; i++)
-          ChallengeChip(
-            challenge: section.challenges[i],
-            section: section,
-            visualIndex: waveStartIndex + i, // GLOBAL index
-            bgColor: color,
-          ),
-      ],
-    );
-  }
-}
-  import 'package:flutter/material.dart';
-
-class ChestWidget extends StatelessWidget {
-  const ChestWidget({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 24.0),
-      child: Container(
-        width: 24.0,
-        height: 24.0,
-        color: Colors.red, // A visual indicator
-      ),
-    );
-  }
-}
-// import 'dart:math' as math;
-//
-// import 'package:flutter/material.dart';
-// import 'dart:math';
-//
-// import '../../domain/models/section.dart';
-//
-// class ExerciseWidget extends StatelessWidget {
-//   final int index;
-//   final Section data;
-//
-//   const ExerciseWidget({
-//     super.key,
-//     required this.index,
-//     required this.data
-//   });
-//
-//   @override
-//   Widget build(BuildContext context) {
-//     return Container(
-//       margin: EdgeInsets.only(
-//         bottom: index != 8 ? 24.0 : 0,
-//         left: getLeft(index),
-//         right: getRight(index),
-//       ),
-//       decoration: BoxDecoration(
-//         border: const Border(
-//           bottom: BorderSide(color: Colors.white10, width: 6.0),
-//         ),
-//         borderRadius: BorderRadius.circular(36.0),
-//       ),
-//       child: ElevatedButton(
-//         onPressed: () {},
-//         style: ElevatedButton.styleFrom(
-//           backgroundColor: data.color,
-//           fixedSize: const Size(56, 48),
-//           elevation: 0,
-//           padding: EdgeInsets.zero,
-//           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-//           minimumSize: Size.zero,
-//         ),
-//         child: Container(
-//           width: 24.0,
-//           height: 24.0,
-//           color: Colors.yellow, // A visual indicator
-//         ),
-//       ),
-//     );
-//   }
-// }
-//
-// double getLeft(int indice) {
-//   const margin = 80.0;
-//   int pos = indice % 9;
-//
-//   if (pos == 1) {
-//     return margin;
-//   }
-//   if (pos == 2) {
-//     return margin * 2;
-//   }
-//   if (pos == 3) {
-//     return margin;
-//   }
-//
-//   return 0.0;
-// }
-//
-// double getRight(int indice) {
-//   const margin = 80.0;
-//   int pos = indice % 9;
-//
-//   if (pos == 5) {
-//     return margin;
-//   }
-//   if (pos == 6) {
-//     return margin * 2;
-//   }
-//   if (pos == 7) {
-//     return margin;
-//   }
-//
-//   return 0.0;
-// }
-import 'dart:ui';
-import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
-import 'package:lottie/lottie.dart';
-import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
-
-import 'package:sailantro/features/home/presentation/pages/test_data.dart';
-import '../components/current_section_widget.dart';
-import '../components/section_widget.dart';
-
-const double _headerHeight = 96.0;
-const double _headerTopPadding = 8.0;
-
-class HomePage extends StatefulWidget {
-  const HomePage({super.key});
-  @override
-  State<HomePage> createState() => _HomePageState();
-}
-
-class _HomePageState extends State<HomePage> {
-  final itemScrollController = ItemScrollController();
-  final itemPositionsListener = ItemPositionsListener.create();
-  int iCurrentSection = 0;
-
-  // Prefix sums of challenges per section → waveStartIndex per section
-  late final List<int> _waveStarts;
-
-  @override
-  void initState() {
-    super.initState();
-    _waveStarts = _computeWaveStarts();
-    itemPositionsListener.itemPositions.addListener(_updateCurrentSectionFromVisibleItems);
-  }
-
-  @override
-  void dispose() {
-    itemPositionsListener.itemPositions.removeListener(_updateCurrentSectionFromVisibleItems);
-    super.dispose();
-  }
-
-  List<int> _computeWaveStarts() {
-    var acc = 0;
-    final starts = <int>[];
-    for (final s in testData) {
-      starts.add(acc);
-      acc += s.challenges.length;
-    }
-    return starts;
-  }
-
-  void _updateCurrentSectionFromVisibleItems() {
-    final positions = itemPositionsListener.itemPositions.value;
-    if (positions.isEmpty || !mounted) return;
-
-    final screenHeight = MediaQuery.of(context).size.height;
-    final headerBottomFraction = (_headerTopPadding + _headerHeight) / screenHeight;
-
-    int candidateIndex = 1; // 0 is spacer
-    for (final pos in positions) {
-      if (pos.index == 0) continue;
-      if (pos.itemLeadingEdge <= headerBottomFraction) {
-        candidateIndex = pos.index;
-      }
-    }
-    final newSection = (candidateIndex - 1).clamp(0, testData.length - 1);
-    if (newSection != iCurrentSection) {
-      setState(() => iCurrentSection = newSection);
-    }
-  }
-
-  void jumpToSection(int sectionIndex) {
-    itemScrollController.scrollTo(
-      index: sectionIndex + 1, // +1 for spacer
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeInOut,
-      alignment: 0.1,
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.surface,
-      // appBar: HomeTopBar(
-      //   onJumpToExample: () => jumpToSection(2),
-      //   onLogout: () => context.read<AuthCubit>().logout(),
-      // ),
-      body: SafeArea(
-        child: Stack(
-          children: [
-            const HomeBackground(
-              asset: 'assets/lottie/water.json',
-              blurSigma: 8,
-              opacity: 0.25,
-            ),
-            HomeContentList(
-              headerHeight: _headerHeight,
-              headerTopPadding: _headerTopPadding,
-              sectionCount: testCourse.sections.length,
-              buildItem: (secIdx) => SectionWidget(
-                section: testCourse.sections[secIdx],
-                waveStartIndex: _waveStarts[secIdx], // chips use waveStartIndex + i
-              ),
-              itemScrollController: itemScrollController,
-              itemPositionsListener: itemPositionsListener,
-            ),
-            HomePinnedHeader(
-              headerTopPadding: _headerTopPadding,
-              child: CurrentSectionWidget(courseName: testCourse.name ,section: testCourse.sections[iCurrentSection]),
-            ),
-          ],
-        ),
-      ),
-      bottomNavigationBar: const HomeBottomNav(),
-    );
-  }
-}
-
-/* ========================= SUB-WIDGETS ========================= */
-
-class HomeTopBar extends StatelessWidget implements PreferredSizeWidget {
-  final VoidCallback onJumpToExample;
-  final VoidCallback onLogout;
-  const HomeTopBar({super.key, required this.onJumpToExample, required this.onLogout});
-
-  @override
-  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
-
-  @override
-  Widget build(BuildContext context) {
-    return AppBar(
-      title: const Text("Home Page"),
-      backgroundColor: Theme.of(context).colorScheme.surface,
-      elevation: 0,
-      actions: [
-        IconButton(onPressed: onJumpToExample, icon: const Icon(Icons.arrow_downward)),
-        IconButton(onPressed: onLogout, icon: const Icon(Icons.logout)),
-      ],
-    );
-  }
-}
-
-class HomeBackground extends StatelessWidget {
-  final String asset;
-  final double blurSigma;
-  final double opacity;
-
-  const HomeBackground({
-    super.key,
-    required this.asset,
-    this.blurSigma = 8,
-    this.opacity = 0.25,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Positioned.fill(
-      child: IgnorePointer(
-        child: ImageFiltered(
-          imageFilter: ImageFilter.blur(sigmaX: blurSigma, sigmaY: blurSigma),
-          child: Opacity(
-            opacity: opacity,
-            child: Semantics(
-              label: 'Animated sailing water background',
-              child: Lottie.asset(
-                asset,
-                fit: BoxFit.cover,
-                alignment: Alignment.bottomCenter,
-                repeat: true,
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-typedef SectionItemBuilder = Widget Function(int sectionIndex);
-
-class HomeContentList extends StatelessWidget {
-  final double headerHeight;
-  final double headerTopPadding;
-  final int sectionCount;
-  final SectionItemBuilder buildItem;
-  final ItemScrollController itemScrollController;
-  final ItemPositionsListener itemPositionsListener;
-
-  const HomeContentList({
-    super.key,
-    required this.headerHeight,
-    required this.headerTopPadding,
-    required this.sectionCount,
-    required this.buildItem,
-    required this.itemScrollController,
-    required this.itemPositionsListener,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.only(top: headerTopPadding + headerHeight + 8),
-      child: ScrollablePositionedList.separated(
-        itemScrollController: itemScrollController,
-        itemPositionsListener: itemPositionsListener,
-        itemCount: sectionCount + 1, // +1 = top spacer
-        itemBuilder: (_, index) {
-          if (index == 0) return const SizedBox(height: 24);
-          final secIdx = index - 1;
-          return buildItem(secIdx);
-        },
-        separatorBuilder: (_, __) => const SizedBox(height: 8.0),
-        padding: const EdgeInsets.only(bottom: 320.0, left: 16.0, right: 16.0),
-      ),
-    );
-  }
-}
-
-class HomePinnedHeader extends StatelessWidget {
-  final double headerTopPadding;
-  final Widget child;
-  const HomePinnedHeader({
-    super.key,
-
-    required this.headerTopPadding,
-    required this.child,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Positioned(
-      top: headerTopPadding,
-      left: 4,
-      right: 4,
-      child: SizedBox(child: child),
-    );
-  }
-}
-
-class HomeBottomNav extends StatelessWidget {
-  const HomeBottomNav({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: const BoxDecoration(border: Border(top: BorderSide(color: Color(
-          0xFFC7F5F8)))),
-      child: BottomNavigationBar(
-        backgroundColor: Theme.of(context).colorScheme.surface,
-        elevation: 0,
-        showSelectedLabels: false,
-        showUnselectedLabels: false,
-        type: BottomNavigationBarType.fixed,
-        items: [
-          BottomNavigationBarItem(
-            icon: SvgPicture.asset('assets/svg/lighthouse.svg', width: 32, height: 32),
-            label: '',
-          ),
-          BottomNavigationBarItem(
-            icon: SvgPicture.asset('assets/svg/helm.svg', width: 32, height: 32),
-            label: '',
-          ),
-          BottomNavigationBarItem(
-            icon: SvgPicture.asset('assets/svg/trophy.svg', width: 32, height: 32),
-            label: '',
-          ),
-          BottomNavigationBarItem(
-            icon: SvgPicture.asset('assets/svg/treasure.svg', width: 32, height: 32),
-            label: '',
-          ),
-          BottomNavigationBarItem(
-            icon: SvgPicture.asset('assets/svg/pirate.svg', width: 32, height: 32),
-            label: '',
-          ),
-        ],
-      ),
-    );
-  }
-}
-import 'dart:ui';
-
-import '../../../../themes/light_mode.dart';
-import '../../domain/models/challenge.dart';
-import '../../domain/models/course.dart';
-import '../../domain/models/question.dart';
-import '../../domain/models/section.dart';
+import '../../../themes/light_mode.dart';
+import '../domain/models/challenge.dart';
+import '../domain/models/course.dart';
+import '../domain/models/question.dart';
+import '../domain/models/section.dart';
 
 final testCourse = Course(
     id: 'ray_day_skipper_theory',
@@ -1217,6 +516,796 @@ final testData = <Section>[
     ],
   ),
 ];
+import '../models/course.dart';
+
+abstract class CourseRepository {
+  Future<Course> getCourse(String courseId);
+}import 'package:sailantro/features/home/domain/models/section.dart';
+
+class Course {
+  final String id;
+  final String name;
+  final List<Section> sections;
+
+
+  const Course({
+    required this.id,
+    required this.name,
+    required this.sections
+  });
+}import 'challenge.dart';
+
+class Section {
+  final String id;
+  final int unit;
+  final int index;
+  final String title;
+  final int colorArgb;
+
+  final List<Challenge> challenges;
+
+  const Section({
+    required this.id,
+    required this.unit,
+    required this.index,
+    required this.title,
+    required this.colorArgb,
+    required this.challenges,
+  });
+}enum QuestionType {
+  mcqSingle,
+  mcqMulti,
+  matchPairs,
+  ordering,
+}
+
+class Question {
+  final String id;
+  final QuestionType type;
+  final int order;
+  final String stem;
+  final String? imageUrl;
+  final Map<String, dynamic> payload;
+
+  const Question({
+    required this.id,
+    required this.type,
+    required this.order,
+    required this.stem,
+    this.imageUrl,
+    this.payload = const {},
+  });
+}import 'question.dart';
+
+class Challenge {
+  final String id;
+  final String title;
+  final int order;
+  final bool isLocked;
+  final int? xpReward;
+  final String iconPath;
+  final List<Question> questions;
+
+
+  const Challenge({
+    required this.id,
+    required this.title,
+    required this.order,
+    required this.questions,
+    required this.iconPath,
+    this.isLocked = false,
+    this.xpReward,
+  });
+}import 'package:flutter/material.dart';
+
+class SectionTheme {
+  final Color color;
+  const SectionTheme(this.color);
+}import '../../domain/models/course.dart';
+import '../../domain/repository/course_repository.dart';
+
+abstract class CourseState {}
+class CourseInitial extends CourseState {}
+class CourseLoading extends CourseState {}
+
+class CourseLoaded extends CourseState {
+  final Course course;
+  CourseLoaded(this.course);
+}
+
+class CourseError extends CourseState {
+  final String message;
+  CourseError(this.message);
+}
+
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+import '../../domain/repository/course_repository.dart';
+import 'course_state.dart';
+
+class CourseCubit extends Cubit<CourseState> {
+  final CourseRepository repository;
+  CourseCubit({required this.repository}) : super(CourseInitial());
+
+  Future<void> loadCourse(String id) async {
+    emit(CourseLoading());
+    try {
+      final course = await repository.getCourse(id);
+      emit(CourseLoaded(course));
+    } catch (e) {
+      emit(CourseError("Failed to load course: $e"));
+    }
+  }
+}import 'dart:math' as math;
+
+class PathLayout {
+  /// Horizontal offset in pixels for a given index.
+  /// Use a GLOBAL index (kept across sections) for a continuous wave.
+  static double dx({
+    required int index,
+    double amplitude = 100.0,         // curve width
+    double stepRads = math.pi / 2,    // center→right→center→left…
+    double phase = -math.pi / 2,      // start a bit left of center
+  }) {
+    return amplitude * math.sin(phase + index * stepRads);
+  }
+}
+import 'dart:ui';
+import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
+import 'package:lottie/lottie.dart';
+import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
+import '../../domain/models/course.dart';
+import '../components/current_section_widget.dart';
+import '../components/section_widget.dart';
+
+const double _headerHeight = 35.0;
+const double _headerTopPadding = 8.0;
+
+class HomeView extends StatefulWidget {
+  final Course course;
+  const HomeView({super.key, required this.course});
+
+  @override
+  State<HomeView> createState() => _HomeViewState();
+}
+
+class _HomeViewState extends State<HomeView> {
+  final itemScrollController = ItemScrollController();
+  final itemPositionsListener = ItemPositionsListener.create();
+  int iCurrentSection = 0;
+
+  late final List<int> _waveStarts;
+
+  @override
+  void initState() {
+    super.initState();
+    _waveStarts = _computeWaveStarts(widget.course);
+    itemPositionsListener.itemPositions.addListener(_updateCurrentSectionFromVisibleItems);
+  }
+
+  @override
+  void dispose() {
+    itemPositionsListener.itemPositions.removeListener(_updateCurrentSectionFromVisibleItems);
+    super.dispose();
+  }
+
+  List<int> _computeWaveStarts(Course course) {
+    var acc = 0;
+    final starts = <int>[];
+    for (final s in course.sections) {
+      starts.add(acc);
+      acc += s.challenges.length;
+    }
+    return starts;
+  }
+
+  void _updateCurrentSectionFromVisibleItems() {
+    final positions = itemPositionsListener.itemPositions.value;
+    if (positions.isEmpty || !mounted) return;
+
+    final screenHeight = MediaQuery.of(context).size.height;
+    final headerBottomFraction = (_headerTopPadding + _headerHeight) / screenHeight;
+
+    int candidateIndex = 1; // 0 is spacer
+    for (final pos in positions) {
+      if (pos.index == 0) continue;
+      if (pos.itemLeadingEdge <= headerBottomFraction) {
+        candidateIndex = pos.index;
+      }
+    }
+    final newSection = (candidateIndex - 1).clamp(0, widget.course.sections.length - 1);
+    if (newSection != iCurrentSection) {
+      setState(() => iCurrentSection = newSection);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return HomeScene(
+      headerTopPadding: _headerTopPadding,
+      headerHeight: _headerHeight,
+      backgroundAsset: 'assets/lottie/water.json',
+      header: CurrentSectionWidget(
+        courseName: widget.course.name,
+        section: widget.course.sections[iCurrentSection],
+      ),
+      content: HomeContentList(
+        headerHeight: _headerHeight,
+        headerTopPadding: _headerTopPadding,
+        sectionCount: widget.course.sections.length,
+        buildItem: (secIdx) => SectionWidget(
+          section: widget.course.sections[secIdx],
+          waveStartIndex: _waveStarts[secIdx],
+        ),
+        itemScrollController: itemScrollController,
+        itemPositionsListener: itemPositionsListener,
+      ),
+    );
+  }
+}
+
+/* ========================= SUB-WIDGETS ========================= */
+
+class HomeTopBar extends StatelessWidget implements PreferredSizeWidget {
+  final VoidCallback onJumpToExample;
+  final VoidCallback onLogout;
+  const HomeTopBar({super.key, required this.onJumpToExample, required this.onLogout});
+
+  @override
+  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
+
+  @override
+  Widget build(BuildContext context) {
+    return AppBar(
+      title: const Text("Home Page"),
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      elevation: 0,
+      actions: [
+        IconButton(onPressed: onJumpToExample, icon: const Icon(Icons.arrow_downward)),
+        IconButton(onPressed: onLogout, icon: const Icon(Icons.logout)),
+      ],
+    );
+  }
+}
+
+class HomeBackground extends StatelessWidget {
+  final String asset;
+  final double blurSigma;
+  final double opacity;
+
+  const HomeBackground({
+    super.key,
+    required this.asset,
+    this.blurSigma = 8,
+    this.opacity = 0.25,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Positioned.fill(
+      child: IgnorePointer(
+        child: ImageFiltered(
+          imageFilter: ImageFilter.blur(sigmaX: blurSigma, sigmaY: blurSigma),
+          child: Opacity(
+            opacity:  opacity,
+            child: Semantics(
+              label: 'Animated sailing water background',
+              child: Lottie.asset(
+                asset,
+                fit: BoxFit.cover,
+                alignment: Alignment.bottomCenter,
+                repeat: true,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+typedef SectionItemBuilder = Widget Function(int sectionIndex);
+
+class HomeContentList extends StatelessWidget {
+  final double headerHeight;
+  final double headerTopPadding;
+  final int sectionCount;
+  final SectionItemBuilder buildItem;
+  final ItemScrollController itemScrollController;
+  final ItemPositionsListener itemPositionsListener;
+
+  const HomeContentList({
+    super.key,
+    required this.headerHeight,
+    required this.headerTopPadding,
+    required this.sectionCount,
+    required this.buildItem,
+    required this.itemScrollController,
+    required this.itemPositionsListener,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(top: headerTopPadding + headerHeight + 8),
+      child: ScrollablePositionedList.separated(
+        itemScrollController: itemScrollController,
+        itemPositionsListener: itemPositionsListener,
+        itemCount: sectionCount + 1,
+        itemBuilder: (_, index) {
+          if (index == 0) return const SizedBox(height: 24);
+          final secIdx = index - 1;
+          return buildItem(secIdx);
+        },
+        separatorBuilder: (_, __) => const SizedBox(height: 8.0),
+        padding: const EdgeInsets.only(bottom: 360.0, left: 16.0, right: 16.0),
+      ),
+    );
+  }
+}
+
+class HomePinnedHeader extends StatelessWidget {
+  final double headerTopPadding;
+  final Widget child;
+  const HomePinnedHeader({
+    super.key,
+
+    required this.headerTopPadding,
+    required this.child,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Positioned(
+      top: headerTopPadding,
+      left: 4,
+      right: 4,
+      child: SizedBox(child: child),
+    );
+  }
+}
+
+class HomeBottomNav extends StatelessWidget {
+  const HomeBottomNav({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: const BoxDecoration(border: Border(top: BorderSide(color: Color(
+          0xFFC7F5F8)))),
+      child: BottomNavigationBar(
+        backgroundColor: Theme.of(context).colorScheme.surface,
+        elevation: 0,
+        showSelectedLabels: false,
+        showUnselectedLabels: false,
+        type: BottomNavigationBarType.fixed,
+        items: [
+          BottomNavigationBarItem(
+            icon: SvgPicture.asset('assets/svg/lighthouse.svg', width: 32, height: 32),
+            label: '',
+          ),
+          BottomNavigationBarItem(
+            icon: SvgPicture.asset('assets/svg/helm.svg', width: 32, height: 32),
+            label: '',
+          ),
+          BottomNavigationBarItem(
+            icon: SvgPicture.asset('assets/svg/trophy.svg', width: 32, height: 32),
+            label: '',
+          ),
+          BottomNavigationBarItem(
+            icon: SvgPicture.asset('assets/svg/treasure.svg', width: 32, height: 32),
+            label: '',
+          ),
+          BottomNavigationBarItem(
+            icon: SvgPicture.asset('assets/svg/pirate.svg', width: 32, height: 32),
+            label: '',
+          ),
+        ],
+      ),
+    );
+  }
+}
+class HomeScene extends StatelessWidget {
+  final double headerTopPadding;
+  final double headerHeight;
+  final String backgroundAsset;
+  final Widget header;
+  final Widget content;
+
+  const HomeScene({
+    super.key,
+    required this.headerTopPadding,
+    required this.headerHeight,
+    required this.backgroundAsset,
+    required this.header,
+    required this.content,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: Stack(
+        children: [
+          HomeBackground(asset: backgroundAsset, blurSigma: 9, opacity: 0.35),
+          Padding(
+            padding: EdgeInsets.only(top: headerTopPadding + headerHeight + 8),
+            child: content,
+          ),
+          HomePinnedHeader(headerTopPadding: headerTopPadding, child: header),
+        ],
+      ),
+    );
+  }
+}
+import 'dart:math' as math;
+import 'dart:ui';
+import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
+import '../../domain/models/challenge.dart';
+import '../../domain/models/section.dart';
+import '../utils/path_layout.dart';
+
+class ChallengeChip extends StatelessWidget {
+  final Challenge challenge;
+  final Section section;
+
+  /// IMPORTANT: This must be a GLOBAL index (not 0..n per section).
+  final int visualIndex;
+  final Color bgColor;
+
+  const ChallengeChip({
+    super.key,
+    required this.challenge,
+    required this.section,
+    required this.visualIndex,
+    required this.bgColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final dx = PathLayout.dx(
+      index: visualIndex,
+      amplitude: 100.0,
+      stepRads: math.pi / 2,
+      phase: -math.pi / 2,
+    );
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 24.0),
+      child: Transform.translate(
+        offset: Offset(dx, 0),
+        child: DecoratedBox(
+          decoration: const BoxDecoration(
+            border: Border(bottom: BorderSide(color: Colors.white10, width: 6)),
+            borderRadius: BorderRadius.all(Radius.circular(36)),
+          ),
+          child: MySvgIconWithEffects(
+            assetPath: challenge.iconPath,
+            isDisabled: challenge.isLocked,
+
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class MySvgIconWithEffects extends StatelessWidget {
+  final bool isDisabled;
+  final String assetPath;
+
+  const MySvgIconWithEffects({
+    super.key,
+    this.isDisabled = false,
+    required this.assetPath,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (isDisabled) {
+      return ImageFiltered(
+        imageFilter: ImageFilter.blur(sigmaX: 1.5, sigmaY: 1.5),
+        child: ColorFiltered(
+          colorFilter: const ColorFilter.matrix(<double>[
+            0.2126,
+            0.7152,
+            0.0722,
+            0,
+            0,
+            0.2126,
+            0.7152,
+            0.0722,
+            0,
+            0,
+            0.2126,
+            0.7152,
+            0.0722,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+          ]),
+          child: SvgPicture.asset(assetPath, width: 64, height: 64),
+        ),
+      );
+    } else {
+      return SvgPicture.asset(assetPath, width: 64, height: 64);
+    }
+  }
+}
+import 'package:flutter/material.dart';
+
+class SectionTitleWidget extends StatelessWidget {
+  final String title;
+
+  const SectionTitleWidget({super.key, required this.title});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        const Expanded(child: Divider(color: Color(0xFF2D3D41))),
+        const SizedBox(width: 16),
+        Text(
+          title,
+          style: const TextStyle(
+            color: Color(0xFF52656D),
+            fontWeight: FontWeight.bold,
+            fontSize: 18.0,
+          ),
+        ),
+        const SizedBox(width: 16),
+        const Expanded(child: Divider(color: Color(0xFF2D3D41))),
+      ],
+    );
+  }
+}
+import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
+import 'package:sailantro/core/utils/color_ext.dart';
+
+import '../../domain/models/section.dart';
+
+class CurrentSectionWidget extends StatelessWidget {
+  final String courseName;
+  final Section section;
+
+  const CurrentSectionWidget({
+    super.key,
+    required this.courseName,
+    required this.section
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final color = section.colorArgb.toColor();
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16.0),
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(16.0),
+        border: Border(bottom: BorderSide(color: color, width: 4.0)),
+      ),
+      child: IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(12.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(courseName,
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    SizedBox(height: 8,),
+                    Text(
+                      section.title,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18.0,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 24.0),
+              decoration: BoxDecoration(
+                border: Border(left: BorderSide(color: color, width: 2.0)),
+              ),
+              child: Center(
+                child: SvgPicture.asset('assets/svg/theory.svg', width: 42, height: 42),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+import 'package:flutter/material.dart';
+import 'package:sailantro/core/utils/color_ext.dart';
+import 'package:sailantro/features/home/presentation/components/section_title_widget.dart';
+import '../../domain/models/section.dart';
+import 'challenge_chip.dart';
+
+class SectionWidget extends StatelessWidget {
+  final Section section;
+
+  /// Where the wave should start for this section.
+  /// Pass a GLOBAL running index from the page.
+  final int waveStartIndex;
+
+  const SectionWidget({
+    super.key,
+    required this.section,
+    required this.waveStartIndex,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final color = section.colorArgb.toColor();
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        SectionTitleWidget(title: section.title),
+        const SizedBox(height: 24.0),
+        for (var i = 0; i < section.challenges.length; i++)
+          ChallengeChip(
+            challenge: section.challenges[i],
+            section: section,
+            visualIndex: waveStartIndex + i, // GLOBAL index
+            bgColor: color,
+          ),
+      ],
+    );
+  }
+}
+  import 'package:flutter/material.dart';
+
+class ChestWidget extends StatelessWidget {
+  const ChestWidget({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 24.0),
+      child: Container(
+        width: 24.0,
+        height: 24.0,
+        color: Colors.red, // A visual indicator
+      ),
+    );
+  }
+}
+// import 'dart:math' as math;
+//
+// import 'package:flutter/material.dart';
+// import 'dart:math';
+//
+// import '../../domain/models/section.dart';
+//
+// class ExerciseWidget extends StatelessWidget {
+//   final int index;
+//   final Section data;
+//
+//   const ExerciseWidget({
+//     super.key,
+//     required this.index,
+//     required this.data
+//   });
+//
+//   @override
+//   Widget build(BuildContext context) {
+//     return Container(
+//       margin: EdgeInsets.only(
+//         bottom: index != 8 ? 24.0 : 0,
+//         left: getLeft(index),
+//         right: getRight(index),
+//       ),
+//       decoration: BoxDecoration(
+//         border: const Border(
+//           bottom: BorderSide(color: Colors.white10, width: 6.0),
+//         ),
+//         borderRadius: BorderRadius.circular(36.0),
+//       ),
+//       child: ElevatedButton(
+//         onPressed: () {},
+//         style: ElevatedButton.styleFrom(
+//           backgroundColor: data.color,
+//           fixedSize: const Size(56, 48),
+//           elevation: 0,
+//           padding: EdgeInsets.zero,
+//           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+//           minimumSize: Size.zero,
+//         ),
+//         child: Container(
+//           width: 24.0,
+//           height: 24.0,
+//           color: Colors.yellow, // A visual indicator
+//         ),
+//       ),
+//     );
+//   }
+// }
+//
+// double getLeft(int indice) {
+//   const margin = 80.0;
+//   int pos = indice % 9;
+//
+//   if (pos == 1) {
+//     return margin;
+//   }
+//   if (pos == 2) {
+//     return margin * 2;
+//   }
+//   if (pos == 3) {
+//     return margin;
+//   }
+//
+//   return 0.0;
+// }
+//
+// double getRight(int indice) {
+//   const margin = 80.0;
+//   int pos = indice % 9;
+//
+//   if (pos == 5) {
+//     return margin;
+//   }
+//   if (pos == 6) {
+//     return margin * 2;
+//   }
+//   if (pos == 7) {
+//     return margin;
+//   }
+//
+//   return 0.0;
+// }
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../components/home_view.dart';
+import '../cubits/course_cubit.dart';
+import '../cubits/course_state.dart';
+
+class HomePage extends StatelessWidget {
+  const HomePage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      bottomNavigationBar: const HomeBottomNav(),
+      body: BlocBuilder<CourseCubit, CourseState>(
+        builder: (context, state) {
+          if (state is CourseLoading || state is CourseInitial) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (state is CourseError) {
+            return Center(child: Text(state.message));
+          } else if (state is CourseLoaded) {
+            return HomeView(course: state.course);
+          }
+          return const SizedBox.shrink();
+        },
+      ),
+    );
+  }
+}
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sailantro/features/auth/domain/models/app_user.dart';
 import 'package:sailantro/features/auth/domain/repository/auth_repository.dart';
@@ -2375,6 +2464,8 @@ import 'package:sailantro/themes/dark_mode.dart';
 import 'package:sailantro/themes/light_mode.dart';
 
 import 'core/router/app_router.dart';
+import 'features/home/data/mock_course_repository.dart';
+import 'features/home/presentation/cubits/course_cubit.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -2386,6 +2477,7 @@ class MyApp extends StatelessWidget {
   MyApp({super.key});
 
   final firebaseAuthRepo = FirebaseAuthRepository();
+  final courseRepo = MockCourseRepository();
 
   @override
   Widget build(BuildContext context) {
@@ -2394,6 +2486,9 @@ class MyApp extends StatelessWidget {
         BlocProvider<AuthCubit>(
           create: (context) =>
           AuthCubit(authRepository: firebaseAuthRepo)..checkAuth(),
+        ),
+        BlocProvider<CourseCubit>(
+          create: (_) => CourseCubit(repository: courseRepo)..loadCourse('ray_day_skipper_theory'),
         ),
       ],
       child: Builder(
