@@ -4,9 +4,14 @@ import 'package:sailantro/core/utils/color_ext.dart';
 import '../../domain/models/section.dart';
 
 class CurrentSectionWidget extends StatelessWidget {
+  final String courseName;
   final Section section;
 
-  const CurrentSectionWidget({super.key, required this.section});
+  const CurrentSectionWidget({
+    super.key,
+    required this.courseName,
+    required this.section
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -30,13 +35,13 @@ class CurrentSectionWidget extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(
-                      'Unit ${section.unit}, Section ${section.index}',
+                    Text(courseName,
                       style: const TextStyle(
                         color: Colors.white70,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
+                    SizedBox(height: 8,),
                     Text(
                       section.title,
                       style: const TextStyle(

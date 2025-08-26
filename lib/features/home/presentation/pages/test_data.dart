@@ -2,8 +2,15 @@ import 'dart:ui';
 
 import '../../../../themes/light_mode.dart';
 import '../../domain/models/challenge.dart';
+import '../../domain/models/course.dart';
 import '../../domain/models/question.dart';
 import '../../domain/models/section.dart';
+
+final testCourse = Course(
+    id: 'ray_day_skipper_theory',
+    name: 'RAY Day Skipper Theory',
+    sections: testData
+);
 
 final testData = <Section>[
   Section(
@@ -11,7 +18,7 @@ final testData = <Section>[
     unit: 1,
     index: 1,
     title: 'Safety equipment',
-    colorArgb: lightMode.colorScheme.primary.value,
+    colorArgb: const Color(0xFF4ECDC4).value,
     challenges: [
       Challenge(
         id: 'ch_safety_intro',
@@ -101,14 +108,13 @@ final testData = <Section>[
     unit: 1,
     index: 2,
     title: 'Distress signals',
-    colorArgb: lightMode.colorScheme.secondary.value,
-    // orange
+    colorArgb: const Color(0xFFD65DB1).value,
     challenges: [
       Challenge(
         id: 'ch_flares',
         title: 'Flares & Smoke',
         order: 100,
-        iconPath: 'assets/svg/chip/chip_4ECDC4.svg',
+        iconPath: 'assets/svg/chip/chip_D65DB1.svg',
         questions: const [
           Question(
             id: 'q_distress_flare',
@@ -130,7 +136,7 @@ final testData = <Section>[
         id: 'ch_radio_mayday',
         title: 'MAYDAY Voice',
         order: 200,
-        iconPath: 'assets/svg/chip/chip_4ECDC4.svg',
+        iconPath: 'assets/svg/chip/chip_D65DB1.svg',
         questions: const [
           Question(
             id: 'q_mayday_order',
@@ -153,7 +159,7 @@ final testData = <Section>[
         id: 'ch_dsc_basics',
         title: 'DSC Basics',
         order: 300,
-        iconPath: 'assets/svg/chip/chip_4ECDC4.svg',
+        iconPath: 'assets/svg/chip/chip_D65DB1.svg',
         questions: const [
           Question(
             id: 'q_dsc_true_false',
@@ -176,14 +182,14 @@ final testData = <Section>[
     unit: 1,
     index: 3,
     title: 'Lifejackets',
-    colorArgb: lightMode.colorScheme.tertiary.value,
+    colorArgb: const Color(0xFF20BF55).value,
     // green
     challenges: [
       Challenge(
         id: 'ch_lj_types',
         title: 'Types & Buoyancy',
         order: 100,
-        iconPath: 'assets/svg/chip/chip_4ECDC4.svg',
+        iconPath: 'assets/svg/chip/chip_20BF55.svg',
         questions: const [
           Question(
             id: 'q_150n_when',
@@ -206,7 +212,7 @@ final testData = <Section>[
         id: 'ch_lj_care',
         title: 'Care & Servicing',
         order: 200,
-        iconPath: 'assets/svg/chip/chip_4ECDC4.svg',
+        iconPath: 'assets/svg/chip/chip_20BF55.svg',
         questions: const [
           Question(
             id: 'q_co2_check',
@@ -228,7 +234,7 @@ final testData = <Section>[
         id: 'ch_lj_fit',
         title: 'Fitting & Adjustment',
         order: 300,
-        iconPath: 'assets/svg/chip/chip_4ECDC4.svg',
+        iconPath: 'assets/svg/chip/chip_20BF55.svg',
         questions: const [
           Question(
             id: 'q_crotch_straps',
@@ -254,14 +260,14 @@ final testData = <Section>[
     unit: 1,
     index: 4,
     title: 'Fire & extinguishers',
-    colorArgb: const Color(0xFF5D7A9F).value,
+    colorArgb: const Color(0xFFFC7E44).value,
     // purple
     challenges: [
       Challenge(
         id: 'ch_classes_of_fire',
         title: 'Classes of Fire',
         order: 100,
-        iconPath: 'assets/svg/chip/chip_4ECDC4.svg',
+        iconPath: 'assets/svg/chip/chip_FC7E44.svg',
         questions: const [
           Question(
             id: 'q_class_b',
@@ -279,7 +285,7 @@ final testData = <Section>[
         id: 'ch_ext_match',
         title: 'Extinguisher Match',
         order: 200,
-        iconPath: 'assets/svg/chip/chip_4ECDC4.svg',
+        iconPath: 'assets/svg/chip/chip_FC7E44.svg',
         questions: const [
           Question(
             id: 'q_ext_match',
@@ -300,7 +306,7 @@ final testData = <Section>[
         id: 'ch_eng_compartment',
         title: 'Engine Compartment',
         order: 300,
-        iconPath: 'assets/svg/chip/chip_4ECDC4.svg',
+        iconPath: 'assets/svg/chip/chip_FC7E44.svg',
         isLocked: true,
         questions: const [
           Question(
@@ -327,14 +333,14 @@ final testData = <Section>[
     unit: 1,
     index: 5,
     title: 'Engine checks & MOB',
-    colorArgb: const Color(0xFFC75D5F).value,
+    colorArgb: const Color(0xFF845EC2).value,
     // red
     challenges: [
       Challenge(
         id: 'ch_prestart',
         title: 'Pre-start Checks',
         order: 100,
-        iconPath: 'assets/svg/chip/chip_4ECDC4.svg',
+        iconPath: 'assets/svg/chip/chip_845EC2.svg',
         isLocked: true,
         questions: const [
           Question(
@@ -358,7 +364,7 @@ final testData = <Section>[
         id: 'ch_mob_sight',
         title: 'MOB – First Actions',
         order: 200,
-        iconPath: 'assets/svg/chip/chip_4ECDC4.svg',
+        iconPath: 'assets/svg/chip/chip_845EC2.svg',
         isLocked: true,
         questions: const [
           Question(
@@ -381,7 +387,7 @@ final testData = <Section>[
         id: 'ch_pickup',
         title: 'Pick-up Under Power',
         order: 300,
-        iconPath: 'assets/svg/chip/chip_4ECDC4.svg',
+        iconPath: 'assets/svg/chip/chip_845EC2.svg',
         isLocked: true,
         questions: const [
           Question(

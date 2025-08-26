@@ -1,13 +1,10 @@
-// lib/features/home/presentation/pages/home_page.dart
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:lottie/lottie.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
 import 'package:sailantro/features/home/presentation/pages/test_data.dart';
-import '../../../auth/presentation/cubits/auth_cubit.dart';
 import '../components/current_section_widget.dart';
 import '../components/section_widget.dart';
 
@@ -99,9 +96,9 @@ class _HomePageState extends State<HomePage> {
             HomeContentList(
               headerHeight: _headerHeight,
               headerTopPadding: _headerTopPadding,
-              testDataLen: testData.length,
+              sectionCount: testCourse.sections.length,
               buildItem: (secIdx) => SectionWidget(
-                section: testData[secIdx],
+                section: testCourse.sections[secIdx],
                 waveStartIndex: _waveStarts[secIdx], // chips use waveStartIndex + i
               ),
               itemScrollController: itemScrollController,
@@ -109,12 +106,7 @@ class _HomePageState extends State<HomePage> {
             ),
             HomePinnedHeader(
               headerTopPadding: _headerTopPadding,
-              child: CurrentSectionWidget(section: testData[iCurrentSection]),
-              // If your CurrentSectionWidget needs re-build animation on change:
-              // child: AnimatedSwitcher(
-              //   duration: const Duration(milliseconds: 180),
-              //   child: CurrentSectionWidget(key: ValueKey(iCurrentSection), section: testData[iCurrentSection]),
-              // ),
+              child: CurrentSectionWidget(courseName: testCourse.name ,section: testCourse.sections[iCurrentSection]),
             ),
           ],
         ),
@@ -189,7 +181,7 @@ typedef SectionItemBuilder = Widget Function(int sectionIndex);
 class HomeContentList extends StatelessWidget {
   final double headerHeight;
   final double headerTopPadding;
-  final int testDataLen;
+  final int sectionCount;
   final SectionItemBuilder buildItem;
   final ItemScrollController itemScrollController;
   final ItemPositionsListener itemPositionsListener;
@@ -198,7 +190,7 @@ class HomeContentList extends StatelessWidget {
     super.key,
     required this.headerHeight,
     required this.headerTopPadding,
-    required this.testDataLen,
+    required this.sectionCount,
     required this.buildItem,
     required this.itemScrollController,
     required this.itemPositionsListener,
@@ -211,7 +203,7 @@ class HomeContentList extends StatelessWidget {
       child: ScrollablePositionedList.separated(
         itemScrollController: itemScrollController,
         itemPositionsListener: itemPositionsListener,
-        itemCount: testDataLen + 1, // +1 = top spacer
+        itemCount: sectionCount + 1, // +1 = top spacer
         itemBuilder: (_, index) {
           if (index == 0) return const SizedBox(height: 24);
           final secIdx = index - 1;
