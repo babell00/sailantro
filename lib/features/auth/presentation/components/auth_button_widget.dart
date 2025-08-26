@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
-class AuthButton extends StatelessWidget {
+class AuthButtonWidget extends StatelessWidget {
   final VoidCallback? onTap;
   final String text;
   final bool isDisable;
 
-  const AuthButton({super.key, this.onTap, required this.text, this.isDisable = false});
+  const AuthButtonWidget({super.key, this.onTap, required this.text, this.isDisable = false});
 
   @override
   Widget build(BuildContext context) {

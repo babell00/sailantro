@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-class AuthTextField extends StatefulWidget {
+class AuthTextFieldWidget extends StatefulWidget {
   final TextEditingController controller;
   final String labelText;
   final bool obscureText;
@@ -11,7 +11,7 @@ class AuthTextField extends StatefulWidget {
   final TextInputAction? textInputAction;
   final void Function(String)? onSubmitted;
 
-  const AuthTextField({
+  const AuthTextFieldWidget({
     super.key,
     required this.controller,
     required this.labelText,
@@ -25,10 +25,10 @@ class AuthTextField extends StatefulWidget {
   });
 
   @override
-  State<AuthTextField> createState() => _AuthTextFieldState();
+  State<AuthTextFieldWidget> createState() => _AuthTextFieldWidgetState();
 }
 
-class _AuthTextFieldState extends State<AuthTextField> {
+class _AuthTextFieldWidgetState extends State<AuthTextFieldWidget> {
   late bool _obscure;
 
   @override

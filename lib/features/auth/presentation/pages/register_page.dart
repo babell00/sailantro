@@ -6,8 +6,8 @@ import 'package:sailantro/features/auth/presentation/cubits/auth_cubit.dart';
 
 import '../../../../core/router/routes.dart';
 import '../../../../core/utils/validators.dart';
-import '../components/auth_button.dart';
-import '../components/auth_text_field.dart';
+import '../components/auth_button_widget.dart';
+import '../components/auth_text_field_widget.dart';
 import '../cubits/auth_state.dart';
 
 class RegisterPage extends StatefulWidget {
@@ -187,34 +187,34 @@ class _RegistrationForm extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 25),
-              AuthTextField(
+              AuthTextFieldWidget(
                 controller: nameController,
                 labelText: "Name",
                 obscureText: false,
                 autocorrect: false,
               ),
               const SizedBox(height: 10),
-              AuthTextField(
+              AuthTextFieldWidget(
                 controller: emailController,
                 labelText: "Email",
                 obscureText: false,
                 autocorrect: false,
               ),
               const SizedBox(height: 10),
-              AuthTextField(
+              AuthTextFieldWidget(
                 controller: passwordController,
                 labelText: "Password",
                 obscureText: true,
               ),
               const SizedBox(height: 10),
-              AuthTextField(
+              AuthTextFieldWidget(
                 controller: confirmPasswordController,
                 labelText: "Confirm Password",
                 obscureText: true,
               ),
 
               const SizedBox(height: 25),
-              AuthButton(
+              AuthButtonWidget(
                 text: "SIGN UP",
                 onTap: onRegister,
                 isDisable: !isButtonEnabled,

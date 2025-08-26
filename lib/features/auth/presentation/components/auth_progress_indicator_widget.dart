@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-class AuthProgressIndicator extends StatelessWidget {
-  const AuthProgressIndicator({super.key});
+class AuthProgressIndicatorWidget extends StatelessWidget {
+  const AuthProgressIndicatorWidget({super.key});
 
   @override
   Widget build(BuildContext context) {

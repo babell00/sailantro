@@ -1,0 +1,674 @@
+import 'challenge.dart';
+
+class Section {
+  final String id;
+  final int unit;
+  final int index;
+  final String title;
+  final int colorArgb;
+
+  final List<Challenge> challenges;
+
+  const Section({
+    required this.id,
+    required this.unit,
+    required this.index,
+    required this.title,
+    required this.colorArgb,
+    required this.challenges,
+  });
+}enum QuestionType {
+  mcqSingle,
+  mcqMulti,
+  matchPairs,
+  ordering,
+}
+
+class Question {
+  final String id;
+  final QuestionType type;
+  final int order;
+  final String stem;
+  final String? imageUrl;
+  final Map<String, dynamic> payload;
+
+  const Question({
+    required this.id,
+    required this.type,
+    required this.order,
+    required this.stem,
+    this.imageUrl,
+    this.payload = const {},
+  });
+}import 'question.dart';
+
+class Challenge {
+  final String id;
+  final String title;         // "Distress Signals · Basics"
+  final int order;
+  final bool isLocked;
+  final int? xpReward;
+  final List<Question> questions;
+
+  const Challenge({
+    required this.id,
+    required this.title,
+    required this.order,
+    required this.questions,
+    this.isLocked = false,
+    this.xpReward,
+  });
+}import 'package:flutter/material.dart';
+
+class SectionTheme {
+  final Color color;
+  const SectionTheme(this.color);
+}// lib/features/study/presentation/widgets/challenge_chip.dart
+import 'package:flutter/material.dart';
+import '../../domain/models/challenge.dart';
+import '../../domain/models/section.dart';
+
+class ChallengeChip extends StatelessWidget {
+  final Challenge challenge;
+  final Section section;
+  final int visualIndex;
+  final Color bgColor;
+
+  const ChallengeChip({
+    super.key,
+    required this.challenge,
+    required this.section,
+    required this.visualIndex,
+    required this.bgColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final left = _getLeft(visualIndex);
+    final right = _getRight(visualIndex);
+
+    return Container(
+      margin: EdgeInsets.only(
+        bottom: visualIndex != section.challenges.length - 1 ? 24 : 0,
+        left: left,
+        right: right,
+      ),
+      decoration: BoxDecoration(
+        border: const Border(
+          bottom: BorderSide(color: Colors.white10, width: 6),
+        ),
+        borderRadius: BorderRadius.circular(36),
+      ),
+      child: ElevatedButton(
+        onPressed: challenge.isLocked ? null : () {},
+        style: ElevatedButton.styleFrom(
+          backgroundColor: bgColor,
+          fixedSize: const Size(56, 48),
+          elevation: 0,
+          padding: EdgeInsets.zero,
+          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          minimumSize: Size.zero,
+        ),
+        child: const Icon(Icons.flag, color: Colors.white),
+      ),
+    );
+  }
+}
+
+double _getLeft(int i) {
+  const margin = 80.0;
+  final pos = i % 9;
+  if (pos == 1) return margin;
+  if (pos == 2) return margin * 2;
+  if (pos == 3) return margin;
+  return 0.0;
+}
+
+double _getRight(int i) {
+  const margin = 80.0;
+  final pos = i % 9;
+  if (pos == 5) return margin;
+  if (pos == 6) return margin * 2;
+  if (pos == 7) return margin;
+  return 0.0;
+}
+import 'package:flutter/material.dart';
+
+class SectionTitleWidget extends StatelessWidget {
+  final String title;
+
+  const SectionTitleWidget({super.key, required this.title});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        const Expanded(child: Divider(color: Color(0xFF2D3D41))),
+        const SizedBox(width: 16),
+        Text(
+          title,
+          style: const TextStyle(
+            color: Color(0xFF52656D),
+            fontWeight: FontWeight.bold,
+            fontSize: 18.0,
+          ),
+        ),
+        const SizedBox(width: 16),
+        const Expanded(child: Divider(color: Color(0xFF2D3D41))),
+      ],
+    );
+  }
+}
+import 'package:flutter/material.dart';
+import 'package:sailantro/core/utils/color_ext.dart';
+
+import '../../domain/models/section.dart';
+
+class CurrentSectionWidget extends StatelessWidget {
+  final Section section;
+
+  const CurrentSectionWidget({super.key, required this.section});
+
+  @override
+  Widget build(BuildContext context) {
+    final color = section.colorArgb.toColor();
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16.0),
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(16.0),
+        border: Border(bottom: BorderSide(color: color, width: 4.0)),
+      ),
+      child: IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(12.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'Unit ${section.unit}, Section ${section.index}',
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    Text(
+                      section.title,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18.0,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              decoration: BoxDecoration(
+                border: Border(left: BorderSide(color: color, width: 2.0)),
+              ),
+              child: Container(
+                width: 20.0,
+                height: 20.0,
+                color: Colors.yellow, // A visual indicator
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+import 'package:flutter/material.dart';
+import 'package:sailantro/core/utils/color_ext.dart';
+import 'package:sailantro/features/home/presentation/components/section_title_widget.dart';
+
+import '../../domain/models/section.dart';
+import 'challenge_chip.dart';
+import 'exercise_widget.dart';
+
+class SectionWidget extends StatelessWidget {
+  final Section section;
+
+  const SectionWidget({super.key, required this.section});
+
+  @override
+  Widget build(BuildContext context) {
+    final color = section.colorArgb.toColor();
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        SectionTitleWidget(title: section.title),
+        const SizedBox(height: 24.0),
+        for (var i = 0; i < section.challenges.length; i++)
+          ChallengeChip(
+            challenge: section.challenges[i],
+            section: section,
+            visualIndex: i,
+            bgColor: color,
+          ),
+      ],
+    );
+  }
+}
+  import 'package:flutter/material.dart';
+
+class ChestWidget extends StatelessWidget {
+  const ChestWidget({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 24.0),
+      child: Container(
+        width: 24.0,
+        height: 24.0,
+        color: Colors.red, // A visual indicator
+      ),
+    );
+  }
+}
+import 'dart:math' as math;
+
+import 'package:flutter/material.dart';
+import 'dart:math';
+
+import '../../domain/models/section.dart';
+
+class ExerciseWidget extends StatelessWidget {
+  final int index;
+  final Section data;
+
+  const ExerciseWidget({
+    super.key,
+    required this.index,
+    required this.data
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: EdgeInsets.only(
+        bottom: index != 8 ? 24.0 : 0,
+        left: getLeft(index),
+        right: getRight(index),
+      ),
+      decoration: BoxDecoration(
+        border: const Border(
+          bottom: BorderSide(color: Colors.white10, width: 6.0),
+        ),
+        borderRadius: BorderRadius.circular(36.0),
+      ),
+      child: ElevatedButton(
+        onPressed: () {},
+        style: ElevatedButton.styleFrom(
+          backgroundColor: data.color,
+          fixedSize: const Size(56, 48),
+          elevation: 0,
+          padding: EdgeInsets.zero,
+          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          minimumSize: Size.zero,
+        ),
+        child: Container(
+          width: 24.0,
+          height: 24.0,
+          color: Colors.yellow, // A visual indicator
+        ),
+      ),
+    );
+  }
+}
+
+double getLeft(int indice) {
+  const margin = 80.0;
+  int pos = indice % 9;
+
+  if (pos == 1) {
+    return margin;
+  }
+  if (pos == 2) {
+    return margin * 2;
+  }
+  if (pos == 3) {
+    return margin;
+  }
+
+  return 0.0;
+}
+
+double getRight(int indice) {
+  const margin = 80.0;
+  int pos = indice % 9;
+
+  if (pos == 5) {
+    return margin;
+  }
+  if (pos == 6) {
+    return margin * 2;
+  }
+  if (pos == 7) {
+    return margin;
+  }
+
+  return 0.0;
+}
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:sailantro/features/home/presentation/pages/test_data.dart';
+import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
+
+import '../../../auth/presentation/cubits/auth_cubit.dart';
+import '../components/current_section_widget.dart';
+import '../components/section_widget.dart';
+
+
+const double _headerHeight = 96.0;      // visual height of CurrentSection card
+const double _headerTopPadding = 8.0;   // breathing room from top
+
+class HomePage extends StatefulWidget {
+  const HomePage({super.key});
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  final itemScrollController = ItemScrollController();
+  final itemPositionsListener = ItemPositionsListener.create();
+  int iCurrentSection = 0;
+
+
+  @override
+  void initState() {
+    super.initState();
+    // [ADD] listen to visible items and compute "current section"
+    itemPositionsListener.itemPositions.addListener(_updateCurrentSectionFromVisibleItems);
+  }
+
+  void _updateCurrentSectionFromVisibleItems() {
+    final positions = itemPositionsListener.itemPositions.value;
+    if (positions.isEmpty || !mounted) return;
+
+    // Screen-normalized coordinates: 0 (top) .. 1 (bottom).
+    // Our pinned header occupies [_headerTopPadding, _headerTopPadding + _headerHeight] px from the top.
+    // Convert that into a fraction of screen height.
+    final screenHeight = MediaQuery.of(context).size.height;
+    final headerBottomFraction = (_headerTopPadding + _headerHeight) / screenHeight;
+
+    // We render list items in order: index 0 is a small spacer, then sections at [1..N].
+    // We want the **last** item whose top (leadingEdge) is AT or ABOVE the header bottom.
+    int candidateIndex = 1; // default to first section container
+    for (final pos in positions) {
+      // We only care about real section rows (skip 0 if it's our spacer)
+      if (pos.index == 0) continue;
+
+      if (pos.itemLeadingEdge <= headerBottomFraction) {
+        candidateIndex = pos.index; // further down (still under header) wins
+      }
+    }
+
+    // Map list index -> section index (because of the spacer at 0)
+    final newSection = (candidateIndex - 1).clamp(0, testData.length - 1);
+    if (newSection != iCurrentSection) {
+      setState(() => iCurrentSection = newSection);
+    }
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+  }
+
+  void jumpToSection(int sectionIndex) {
+    // +1 because index 0 is the spacer item in the list
+    itemScrollController.scrollTo(
+      index: sectionIndex + 1,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+      alignment: 0.1, // keep section’s title just below the pinned header
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text("Home Page"),
+        actions: [
+          IconButton(
+            onPressed: () {
+              jumpToSection(2); // [EXAMPLE] Jump to Section 2 (index = 2)
+            },
+            icon: const Icon(Icons.arrow_downward),
+          ),
+          IconButton(
+            onPressed: () {
+              final authCubit = context.read<AuthCubit>();
+              authCubit.logout();
+            },
+            icon: const Icon(Icons.logout),
+          ),
+        ],
+      ),
+      body: Stack(
+        children: [
+          // [MOD] Push list down so it doesn't go under the pinned header
+          Padding(
+            padding: const EdgeInsets.only(
+              top: _headerTopPadding + _headerHeight + 8, // extra 8 for separation
+            ),
+            child: ScrollablePositionedList.separated(
+              // [ADD] controllers
+              itemScrollController: itemScrollController,
+              itemPositionsListener: itemPositionsListener,
+
+              // [MOD] we include a leading spacer item at index 0 for cleaner top padding
+              itemCount: testData.length + 1,
+              itemBuilder: (_, index) {
+                if (index == 0) {
+                  return const SizedBox(height: 24); // [ADD] spacer item
+                }
+                // [EXISTING] your Section widget
+                return SectionWidget(section: testData[index - 1]);
+              },
+              separatorBuilder: (_, __) => const SizedBox(height: 24.0),
+              padding: const EdgeInsets.only(
+                bottom: 24.0,
+                left: 16.0,
+                right: 16.0,
+              ),
+            ),
+          ),
+
+          // [MOD] Pin the CurrentSection card at the top
+          Positioned(
+            top: _headerTopPadding,
+            left: 16,
+            right: 16,
+            child: SizedBox(
+              height: _headerHeight,
+              // [ADD] small delight: animate the content swap when section changes
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 180),
+                switchInCurve: Curves.easeOut,
+                switchOutCurve: Curves.easeIn,
+                transitionBuilder: (child, anim) => FadeTransition(opacity: anim, child: child),
+                child: CurrentSectionWidget(
+                  key: ValueKey(iCurrentSection), // ensures animation on change
+                  section: testData[iCurrentSection],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}// lib/features/study/presentation/pages/test_data.dart
+
+
+import '../../domain/models/challenge.dart';
+import '../../domain/models/question.dart';
+import '../../domain/models/section.dart';
+
+final testData = <Section>[
+  Section(
+    id: 'sec_safety_equipment',
+    unit: 1,
+    index: 1,
+    title: 'Safety equipment',
+    colorArgb: 0xFF2196F3, // Colors.blue
+    challenges: [
+      Challenge(
+        id: 'ch_safety_basics',
+        title: 'Intro to Safety Gear',
+        order: 100,
+        questions: const [
+          Question(
+            id: 'q_lifejackets_required',
+            type: QuestionType.mcqSingle,
+            order: 100,
+            stem: 'When should you wear a lifejacket?',
+            payload: {
+              'options': [
+                'Only at night',
+                'Only offshore',
+                'When on deck',
+                'All of the above'
+              ],
+              'answerIndex': 3,
+            },
+          ),
+        ],
+      ),
+    ],
+  ),
+  Section(
+    id: 'sec_distress_signals',
+    unit: 1,
+    index: 2,
+    title: 'Distress signals',
+    colorArgb: 0xFFFF9800, // Colors.orange
+    challenges: [
+      Challenge(
+        id: 'ch_flares',
+        title: 'Flares & Smoke',
+        order: 100,
+        questions: const [
+          Question(
+            id: 'q_distress_flare',
+            type: QuestionType.mcqSingle,
+            order: 100,
+            stem: 'Which is a recognized distress signal?',
+            payload: {
+              'options': [
+                'Red hand flare',
+                'White torch light',
+                'Morse X with arms',
+              ],
+              'answerIndex': 0,
+            },
+          ),
+        ],
+      ),
+    ],
+  ),
+  Section(
+    id: 'sec_lifejackets',
+    unit: 1,
+    index: 3,
+    title: 'Lifejackets',
+    colorArgb: 0xFF4CAF50, // Colors.green
+    challenges: [
+      Challenge(
+        id: 'ch_lifejacket_types',
+        title: 'Lifejacket Types',
+        order: 100,
+        questions: const [
+          Question(
+            id: 'q_inflatable_vs_foam',
+            type: QuestionType.mcqMulti,
+            order: 100,
+            stem: 'Which of these are true about inflatable lifejackets?',
+            payload: {
+              'options': [
+                'Require regular servicing',
+                'More comfortable than foam',
+                'Can never fail',
+              ],
+              'correctIndexes': [0, 1],
+            },
+          ),
+        ],
+      ),
+    ],
+  ),
+  Section(
+    id: 'sec_fire',
+    unit: 1,
+    index: 4,
+    title: 'Fire & extinguishers',
+    colorArgb: 0xFF9C27B0, // Colors.purple
+    challenges: [
+      Challenge(
+        id: 'ch_fire_extinguishers',
+        title: 'Extinguisher Use',
+        order: 100,
+        questions: const [
+          Question(
+            id: 'q_extinguisher_match',
+            type: QuestionType.matchPairs,
+            order: 100,
+            stem: 'Match extinguisher type with fire type.',
+            payload: {
+              'pairs': [
+                ['CO₂', 'Electrical fire'],
+                ['Foam', 'Fuel fire'],
+              ]
+            },
+          ),
+        ],
+      ),
+    ],
+  ),
+  Section(
+    id: 'sec_engine_mob',
+    unit: 1,
+    index: 5,
+    title: 'Engine checks & MOB',
+    colorArgb: 0xFFF44336, // Colors.red
+    challenges: [
+      Challenge(
+        id: 'ch_mob_sequence',
+        title: 'MOB Procedure',
+        order: 100,
+        questions: const [
+          Question(
+            id: 'q_mob_order',
+            type: QuestionType.ordering,
+            order: 100,
+            stem: 'Order the steps of a man overboard drill.',
+            payload: {
+              'items': [
+                'Shout "Man Overboard!"',
+                'Throw lifebuoy',
+                'Mark position on GPS',
+                'Turn boat into wind',
+                'Recover person'
+              ]
+            },
+          ),
+        ],
+      ),
+    ],
+  ),
+];

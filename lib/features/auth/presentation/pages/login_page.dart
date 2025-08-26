@@ -5,8 +5,8 @@ import 'package:lottie/lottie.dart';
 
 import '../../../../core/router/routes.dart';
 import '../../../../core/utils/validators.dart';
-import '../components/auth_button.dart';
-import '../components/auth_text_field.dart';
+import '../components/auth_button_widget.dart';
+import '../components/auth_text_field_widget.dart';
 import '../cubits/auth_cubit.dart';
 import '../cubits/auth_state.dart';
 
@@ -149,14 +149,14 @@ class _LoginForm extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 25),
-              AuthTextField(
+              AuthTextFieldWidget(
                 controller: emailController,
                 labelText: "Email",
                 obscureText: false,
                 autocorrect: false,
               ),
               const SizedBox(height: 10),
-              AuthTextField(
+              AuthTextFieldWidget(
                 controller: passwordController,
                 labelText: "Password",
                 obscureText: true,
@@ -180,7 +180,7 @@ class _LoginForm extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 15),
-              AuthButton(
+              AuthButtonWidget(
                 text: "LOGIN",
                 onTap: onLogin,
                 isDisable: !isButtonEnabled,

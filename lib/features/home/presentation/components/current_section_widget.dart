@@ -1,20 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:sailantro/core/utils/color_ext.dart';
 
-import '../../domain/models/section_data.dart';
+import '../../domain/models/section.dart';
 
-class CurrentSection extends StatelessWidget {
-  final SectionData data;
+class CurrentSectionWidget extends StatelessWidget {
+  final Section section;
 
-  const CurrentSection({super.key, required this.data});
+  const CurrentSectionWidget({super.key, required this.section});
 
   @override
   Widget build(BuildContext context) {
+    final color = section.colorArgb.toColor();
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16.0),
       decoration: BoxDecoration(
-        color: data.color,
+        color: color,
         borderRadius: BorderRadius.circular(16.0),
-        border: Border(bottom: BorderSide(color: data.color, width: 4.0)),
+        border: Border(bottom: BorderSide(color: color, width: 4.0)),
       ),
       child: IntrinsicHeight(
         child: Row(
@@ -28,14 +31,14 @@ class CurrentSection extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      'Unit ${data.unit}, Section ${data.section}',
+                      'Unit ${section.unit}, Section ${section.index}',
                       style: const TextStyle(
                         color: Colors.white70,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
                     Text(
-                      data.title,
+                      section.title,
                       style: const TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
@@ -49,15 +52,13 @@ class CurrentSection extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
               decoration: BoxDecoration(
-                border: Border(
-                  left: BorderSide(color: data.color, width: 2.0),
-                ),
+                border: Border(left: BorderSide(color: color, width: 2.0)),
               ),
               child: Container(
                 width: 20.0,
                 height: 20.0,
                 color: Colors.yellow, // A visual indicator
-              )
+              ),
             ),
           ],
         ),

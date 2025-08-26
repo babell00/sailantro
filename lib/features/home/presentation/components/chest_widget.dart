@@ -1,7 +1,7 @@
-import 'package:flutter/material.dart';
+  import 'package:flutter/material.dart';
 
-class Chest extends StatelessWidget {
-  const Chest({super.key});
+class ChestWidget extends StatelessWidget {
+  const ChestWidget({super.key});
 
   @override
   Widget build(BuildContext context) {
