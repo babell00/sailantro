@@ -1,3 +1,6 @@
+import 'dart:ui';
+
+import '../../../../themes/light_mode.dart';
 import '../../domain/models/challenge.dart';
 import '../../domain/models/question.dart';
 import '../../domain/models/section.dart';
@@ -8,7 +11,7 @@ final testData = <Section>[
     unit: 1,
     index: 1,
     title: 'Safety equipment',
-    colorArgb: 0xFF2196F3, // blue
+    colorArgb: lightMode.colorScheme.primary.value,
     challenges: [
       Challenge(
         id: 'ch_safety_intro',
@@ -21,7 +24,12 @@ final testData = <Section>[
             order: 100,
             stem: 'When should you wear a lifejacket?',
             payload: {
-              'options': ['Only at night','Only offshore','When on deck','All of the above'],
+              'options': [
+                'Only at night',
+                'Only offshore',
+                'When on deck',
+                'All of the above',
+              ],
               'answerIndex': 3,
             },
           ),
@@ -38,7 +46,7 @@ final testData = <Section>[
             order: 100,
             stem: 'How often should a liferaft be serviced?',
             payload: {
-              'options': ['Monthly','Annually','Every 3–5 years','Never'],
+              'options': ['Monthly', 'Annually', 'Every 3–5 years', 'Never'],
               'answerIndex': 2,
             },
           ),
@@ -59,7 +67,7 @@ final testData = <Section>[
                 ['Jackstay', 'Clip-on tether run'],
                 ['Whistle', 'Sound signal on LJ'],
                 ['Sprayhood', 'Protect face in waves'],
-              ]
+              ],
             },
           ),
         ],
@@ -75,8 +83,8 @@ final testData = <Section>[
             order: 100,
             stem: 'Select all items found in a liferaft grab bag.',
             payload: {
-              'options': ['Flares','EPIRB','Kettle','Sea anchor'],
-              'correctIndexes': [0,1,3],
+              'options': ['Flares', 'EPIRB', 'Kettle', 'Sea anchor'],
+              'correctIndexes': [0, 1, 3],
             },
           ),
         ],
@@ -89,7 +97,8 @@ final testData = <Section>[
     unit: 1,
     index: 2,
     title: 'Distress signals',
-    colorArgb: 0xFFFF9800, // orange
+    colorArgb: lightMode.colorScheme.secondary.value,
+    // orange
     challenges: [
       Challenge(
         id: 'ch_flares',
@@ -102,7 +111,11 @@ final testData = <Section>[
             order: 100,
             stem: 'Which is a recognized distress signal?',
             payload: {
-              'options': ['Red hand flare','White torch light','Morse X with arms'],
+              'options': [
+                'Red hand flare',
+                'White torch light',
+                'Morse X with arms',
+              ],
               'answerIndex': 0,
             },
           ),
@@ -125,7 +138,7 @@ final testData = <Section>[
                 'Position',
                 'Nature of distress',
                 'Assistance required',
-              ]
+              ],
             },
           ),
         ],
@@ -139,9 +152,10 @@ final testData = <Section>[
             id: 'q_dsc_true_false',
             type: QuestionType.mcqSingle,
             order: 100,
-            stem: 'True or false: A DSC distress alert transmits your position automatically.',
+            stem:
+                'True or false: A DSC distress alert transmits your position automatically.',
             payload: {
-              'options': ['True','False'],
+              'options': ['True', 'False'],
               'answerIndex': 0,
             },
           ),
@@ -155,7 +169,8 @@ final testData = <Section>[
     unit: 1,
     index: 3,
     title: 'Lifejackets',
-    colorArgb: 0xFF4CAF50, // green
+    colorArgb: lightMode.colorScheme.tertiary.value,
+    // green
     challenges: [
       Challenge(
         id: 'ch_lj_types',
@@ -168,7 +183,12 @@ final testData = <Section>[
             order: 100,
             stem: 'When is a 150N lifejacket typically recommended?',
             payload: {
-              'options': ['Inland lakes','Sheltered bays','Coastal/offshore','Never'],
+              'options': [
+                'Inland lakes',
+                'Sheltered bays',
+                'Coastal/offshore',
+                'Never',
+              ],
               'answerIndex': 2,
             },
           ),
@@ -185,8 +205,12 @@ final testData = <Section>[
             order: 100,
             stem: 'What should you check on an inflatable lifejacket?',
             payload: {
-              'options': ['CO₂ cylinder tightness','Auto cartridge expiry','Top-up with air weekly'],
-              'correctIndexes': [0,1],
+              'options': [
+                'CO₂ cylinder tightness',
+                'Auto cartridge expiry',
+                'Top-up with air weekly',
+              ],
+              'correctIndexes': [0, 1],
             },
           ),
         ],
@@ -220,7 +244,8 @@ final testData = <Section>[
     unit: 1,
     index: 4,
     title: 'Fire & extinguishers',
-    colorArgb: 0xFF9C27B0, // purple
+    colorArgb: const Color(0xFF5D7A9F).value,
+    // purple
     challenges: [
       Challenge(
         id: 'ch_classes_of_fire',
@@ -233,7 +258,7 @@ final testData = <Section>[
             order: 100,
             stem: 'Class B fires involve…',
             payload: {
-              'options': ['Wood/paper','Flammable liquids','Gases'],
+              'options': ['Wood/paper', 'Flammable liquids', 'Gases'],
               'answerIndex': 1,
             },
           ),
@@ -254,7 +279,7 @@ final testData = <Section>[
                 ['CO₂', 'Electrical'],
                 ['Foam', 'Fuel'],
                 ['Water', 'Solid materials'],
-              ]
+              ],
             },
           ),
         ],
@@ -288,7 +313,8 @@ final testData = <Section>[
     unit: 1,
     index: 5,
     title: 'Engine checks & MOB',
-    colorArgb: 0xFFF44336, // red
+    colorArgb: const Color(0xFFC75D5F).value,
+    // red
     challenges: [
       Challenge(
         id: 'ch_prestart',
@@ -301,8 +327,13 @@ final testData = <Section>[
             order: 100,
             stem: 'Select the common pre-start checks.',
             payload: {
-              'options': ['Oil level','Coolant level','Prop pitch','Fuel shut-off open'],
-              'correctIndexes': [0,1,3],
+              'options': [
+                'Oil level',
+                'Coolant level',
+                'Prop pitch',
+                'Fuel shut-off open',
+              ],
+              'correctIndexes': [0, 1, 3],
             },
           ),
         ],
@@ -323,7 +354,7 @@ final testData = <Section>[
                 'Throw lifebuoy',
                 'Press MOB on GPS',
                 'Keep pointing at casualty',
-              ]
+              ],
             },
           ),
         ],
@@ -339,7 +370,7 @@ final testData = <Section>[
             order: 100,
             stem: 'Preferred side to recover under power (typical yacht)?',
             payload: {
-              'options': ['Leeward side','Windward side'],
+              'options': ['Leeward side', 'Windward side'],
               'answerIndex': 0,
             },
           ),

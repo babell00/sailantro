@@ -1,6 +1,9 @@
+// lib/features/home/presentation/pages/home_page.dart
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:lottie/lottie.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
 import 'package:sailantro/features/home/presentation/pages/test_data.dart';
@@ -13,7 +16,6 @@ const double _headerTopPadding = 8.0;
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
-
   @override
   State<HomePage> createState() => _HomePageState();
 }
@@ -30,23 +32,15 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     _waveStarts = _computeWaveStarts();
-
-    // Keep the “current section” in sync with what’s under the pinned header
-    itemPositionsListener.itemPositions.addListener(
-      _updateCurrentSectionFromVisibleItems,
-    );
+    itemPositionsListener.itemPositions.addListener(_updateCurrentSectionFromVisibleItems);
   }
 
   @override
   void dispose() {
-    // Clean up the listener
-    itemPositionsListener.itemPositions.removeListener(
-      _updateCurrentSectionFromVisibleItems,
-    );
+    itemPositionsListener.itemPositions.removeListener(_updateCurrentSectionFromVisibleItems);
     super.dispose();
   }
 
-  // Build prefix sums so the sine wave is continuous across sections
   List<int> _computeWaveStarts() {
     var acc = 0;
     final starts = <int>[];
@@ -62,17 +56,15 @@ class _HomePageState extends State<HomePage> {
     if (positions.isEmpty || !mounted) return;
 
     final screenHeight = MediaQuery.of(context).size.height;
-    final headerBottomFraction =
-        (_headerTopPadding + _headerHeight) / screenHeight;
+    final headerBottomFraction = (_headerTopPadding + _headerHeight) / screenHeight;
 
-    int candidateIndex = 1; // first real section row (0 is spacer)
+    int candidateIndex = 1; // 0 is spacer
     for (final pos in positions) {
       if (pos.index == 0) continue;
       if (pos.itemLeadingEdge <= headerBottomFraction) {
         candidateIndex = pos.index;
       }
     }
-
     final newSection = (candidateIndex - 1).clamp(0, testData.length - 1);
     if (newSection != iCurrentSection) {
       setState(() => iCurrentSection = newSection);
@@ -91,124 +83,204 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Home Page"),
-        backgroundColor: Colors.transparent, // Make background transparent
-        elevation: 0,
-        actions: [
-          IconButton(
-            onPressed: () => jumpToSection(2),
-            icon: const Icon(Icons.arrow_downward),
-          ),
-          IconButton(
-            onPressed: () => context.read<AuthCubit>().logout(),
-            icon: const Icon(Icons.logout),
-          ),
-        ],
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      appBar: HomeTopBar(
+        onJumpToExample: () => jumpToSection(2),
+        onLogout: () => context.read<AuthCubit>().logout(),
       ),
       body: Stack(
         children: [
-          // Push list below pinned header
-          Padding(
-            padding: const EdgeInsets.only(
-              top: _headerTopPadding + _headerHeight + 8,
-            ),
-            child: ScrollablePositionedList.separated(
-              itemScrollController: itemScrollController,
-              itemPositionsListener: itemPositionsListener,
-              itemCount: testData.length + 1,
-              // +1 = top spacer
-              itemBuilder: (_, index) {
-                if (index == 0) {
-                  return const SizedBox(height: 24);
-                }
-                final secIdx = index - 1;
-                final section = testData[secIdx];
-                final waveStartIndex =
-                    _waveStarts[secIdx]; // ← precomputed global start
-
-                return SectionWidget(
-                  section: section,
-                  waveStartIndex:
-                      waveStartIndex, // chips will use waveStartIndex + i
-                );
-              },
-              separatorBuilder: (_, __) => const SizedBox(height: 24.0),
-              padding: const EdgeInsets.only(
-                bottom: 24.0,
-                left: 16.0,
-                right: 16.0,
-              ),
-            ),
+          const HomeBackground(
+            asset: 'assets/lottie/water.json',
+            blurSigma: 8,
+            opacity: 0.25,
           ),
-
-          // Pinned “Current Section” card
-          Positioned(
-            top: _headerTopPadding,
-            left: 16,
-            right: 16,
-            child: SizedBox(
-              height: _headerHeight,
-              child: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 180),
-                switchInCurve: Curves.easeOut,
-                switchOutCurve: Curves.easeIn,
-                transitionBuilder: (child, anim) =>
-                    FadeTransition(opacity: anim, child: child),
-                child: CurrentSectionWidget(
-                  key: ValueKey(iCurrentSection),
-                  section: testData[iCurrentSection],
-                ),
-              ),
+          HomeContentList(
+            headerHeight: _headerHeight,
+            headerTopPadding: _headerTopPadding,
+            testDataLen: testData.length,
+            buildItem: (secIdx) => SectionWidget(
+              section: testData[secIdx],
+              waveStartIndex: _waveStarts[secIdx], // chips use waveStartIndex + i
             ),
+            itemScrollController: itemScrollController,
+            itemPositionsListener: itemPositionsListener,
+          ),
+          HomePinnedHeader(
+            headerHeight: _headerHeight,
+            headerTopPadding: _headerTopPadding,
+            child: CurrentSectionWidget(section: testData[iCurrentSection]),
+            // If your CurrentSectionWidget needs re-build animation on change:
+            // child: AnimatedSwitcher(
+            //   duration: const Duration(milliseconds: 180),
+            //   child: CurrentSectionWidget(key: ValueKey(iCurrentSection), section: testData[iCurrentSection]),
+            // ),
           ),
         ],
       ),
-      bottomNavigationBar: Container(
-        decoration: const BoxDecoration(
-          border: Border(top: BorderSide(color: Color(0xFF2D3D41))),
+      bottomNavigationBar: const HomeBottomNav(),
+    );
+  }
+}
+
+/* ========================= SUB-WIDGETS ========================= */
+
+class HomeTopBar extends StatelessWidget implements PreferredSizeWidget {
+  final VoidCallback onJumpToExample;
+  final VoidCallback onLogout;
+  const HomeTopBar({super.key, required this.onJumpToExample, required this.onLogout});
+
+  @override
+  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
+
+  @override
+  Widget build(BuildContext context) {
+    return AppBar(
+      title: const Text("Home Page"),
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      elevation: 0,
+      actions: [
+        IconButton(onPressed: onJumpToExample, icon: const Icon(Icons.arrow_downward)),
+        IconButton(onPressed: onLogout, icon: const Icon(Icons.logout)),
+      ],
+    );
+  }
+}
+
+class HomeBackground extends StatelessWidget {
+  final String asset;
+  final double blurSigma;
+  final double opacity;
+
+  const HomeBackground({
+    super.key,
+    required this.asset,
+    this.blurSigma = 8,
+    this.opacity = 0.25,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Positioned.fill(
+      child: IgnorePointer(
+        child: ImageFiltered(
+          imageFilter: ImageFilter.blur(sigmaX: blurSigma, sigmaY: blurSigma),
+          child: Opacity(
+            opacity: opacity,
+            child: Semantics(
+              label: 'Animated sailing water background',
+              child: Lottie.asset(
+                asset,
+                fit: BoxFit.cover,
+                alignment: Alignment.bottomCenter,
+                repeat: true,
+              ),
+            ),
+          ),
         ),
-        child: BottomNavigationBar(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          showSelectedLabels: false,
-          showUnselectedLabels: false,
-          type: BottomNavigationBarType.fixed,
-          items: [
-            BottomNavigationBarItem(
-              icon: SvgPicture.asset(
-                'assets/svg/inicio.svg',
-                width: 32,
-                height: 32,
-              ),
-              label: '',
-            ),
-            BottomNavigationBarItem(
-              icon: SvgPicture.asset(
-                'assets/svg/practica.svg',
-                width: 32,
-                height: 32,
-              ),
-              label: '',
-            ),
-            BottomNavigationBarItem(
-              icon: SvgPicture.asset(
-                'assets/svg/escudo.svg',
-                width: 32,
-                height: 32,
-              ),
-              label: '',
-            ),
-            BottomNavigationBarItem(
-              icon: SvgPicture.asset('assets/svg/cofre.svg', width: 32, height: 32),
-              label: '',
-            ),
-            BottomNavigationBarItem(
-              icon: SvgPicture.asset('assets/svg/mas.svg', width: 32, height: 32),
-              label: '',
-            ),
-          ],
-        ),
+      ),
+    );
+  }
+}
+
+typedef SectionItemBuilder = Widget Function(int sectionIndex);
+
+class HomeContentList extends StatelessWidget {
+  final double headerHeight;
+  final double headerTopPadding;
+  final int testDataLen;
+  final SectionItemBuilder buildItem;
+  final ItemScrollController itemScrollController;
+  final ItemPositionsListener itemPositionsListener;
+
+  const HomeContentList({
+    super.key,
+    required this.headerHeight,
+    required this.headerTopPadding,
+    required this.testDataLen,
+    required this.buildItem,
+    required this.itemScrollController,
+    required this.itemPositionsListener,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(top: headerTopPadding + headerHeight + 8),
+      child: ScrollablePositionedList.separated(
+        itemScrollController: itemScrollController,
+        itemPositionsListener: itemPositionsListener,
+        itemCount: testDataLen + 1, // +1 = top spacer
+        itemBuilder: (_, index) {
+          if (index == 0) return const SizedBox(height: 24);
+          final secIdx = index - 1;
+          return buildItem(secIdx);
+        },
+        separatorBuilder: (_, __) => const SizedBox(height: 8.0),
+        padding: const EdgeInsets.only(bottom: 320.0, left: 16.0, right: 16.0),
+      ),
+    );
+  }
+}
+
+class HomePinnedHeader extends StatelessWidget {
+  final double headerHeight;
+  final double headerTopPadding;
+  final Widget child;
+
+  const HomePinnedHeader({
+    super.key,
+    required this.headerHeight,
+    required this.headerTopPadding,
+    required this.child,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Positioned(
+      top: headerTopPadding,
+      left: 4,
+      right: 4,
+      child: SizedBox(height: headerHeight, child: child),
+    );
+  }
+}
+
+class HomeBottomNav extends StatelessWidget {
+  const HomeBottomNav({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: const BoxDecoration(border: Border(top: BorderSide(color: Color(0xFF2D3D41)))),
+      child: BottomNavigationBar(
+        backgroundColor: Theme.of(context).colorScheme.surface,
+        elevation: 0,
+        showSelectedLabels: false,
+        showUnselectedLabels: false,
+        type: BottomNavigationBarType.fixed,
+        items: [
+          BottomNavigationBarItem(
+            icon: SvgPicture.asset('assets/svg/inicio.svg', width: 32, height: 32),
+            label: '',
+          ),
+          BottomNavigationBarItem(
+            icon: SvgPicture.asset('assets/svg/practica.svg', width: 32, height: 32),
+            label: '',
+          ),
+          BottomNavigationBarItem(
+            icon: SvgPicture.asset('assets/svg/escudo.svg', width: 32, height: 32),
+            label: '',
+          ),
+          BottomNavigationBarItem(
+            icon: SvgPicture.asset('assets/svg/cofre.svg', width: 32, height: 32),
+            label: '',
+          ),
+          BottomNavigationBarItem(
+            icon: SvgPicture.asset('assets/svg/mas.svg', width: 32, height: 32),
+            label: '',
+          ),
+        ],
       ),
     );
   }
