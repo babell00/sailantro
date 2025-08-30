@@ -220,8 +220,8 @@ class HomeBottomNav extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(border: Border(top: BorderSide(color: Color(
-          0xFFC7F5F8)))),
+      // decoration: const BoxDecoration(border: Border(top: BorderSide(color: Color(
+      //     0xFFC7F5F8)))),
       child: BottomNavigationBar(
         backgroundColor: Theme.of(context).colorScheme.surface,
         elevation: 0,
@@ -275,7 +275,7 @@ class HomeScene extends StatelessWidget {
     return SafeArea(
       child: Stack(
         children: [
-          HomeBackground(asset: backgroundAsset, blurSigma: 9, opacity: 0.35),
+          // HomeBackground(asset: backgroundAsset, blurSigma: 9, opacity: 0.35),
           Padding(
             padding: EdgeInsets.only(top: headerTopPadding + headerHeight + 8),
             child: content,
