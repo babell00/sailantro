@@ -1,4 +1,4 @@
-import 'package:sailantro/features/home/domain/models/section.dart';
+import 'package:sailantro/features/home/domain/entities/section.dart';
 
 class Course {
   final String id;

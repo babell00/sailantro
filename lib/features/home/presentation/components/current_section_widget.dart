@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:sailantro/core/utils/color_ext.dart';
 
-import '../../domain/models/section.dart';
+import '../../domain/entities/section.dart';
 
 class CurrentSectionWidget extends StatelessWidget {
   final String courseName;

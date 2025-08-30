@@ -1,6 +1,6 @@
 import 'package:sailantro/features/home/data/test_data.dart';
 
-import '../domain/models/course.dart';
+import '../domain/entities/course.dart';
 import '../domain/repository/course_repository.dart';
 
 class MockCourseRepository implements CourseRepository {

@@ -1,10 +1,9 @@
 import 'dart:ui';
 
-import '../../../themes/light_mode.dart';
-import '../domain/models/challenge.dart';
-import '../domain/models/course.dart';
-import '../domain/models/question.dart';
-import '../domain/models/section.dart';
+import '../domain/entities/challenge.dart';
+import '../domain/entities/course.dart';
+import '../domain/entities/question.dart';
+import '../domain/entities/section.dart';
 
 final testCourse = Course(
     id: 'ray_day_skipper_theory',
@@ -18,7 +17,7 @@ final testData = <Section>[
     unit: 1,
     index: 1,
     title: 'Safety equipment',
-    colorArgb: const Color(0xFF4ECDC4).value,
+    colorArgb: const Color(0xFF4ECDC4).toARGB32(),
     challenges: [
       Challenge(
         id: 'ch_safety_intro',
@@ -108,7 +107,7 @@ final testData = <Section>[
     unit: 1,
     index: 2,
     title: 'Distress signals',
-    colorArgb: const Color(0xFFD65DB1).value,
+    colorArgb: const Color(0xFFD65DB1).toARGB32(),
     challenges: [
       Challenge(
         id: 'ch_flares',
@@ -182,7 +181,7 @@ final testData = <Section>[
     unit: 1,
     index: 3,
     title: 'Lifejackets',
-    colorArgb: const Color(0xFF20BF55).value,
+    colorArgb: const Color(0xFF20BF55).toARGB32(),
     // green
     challenges: [
       Challenge(
@@ -260,7 +259,7 @@ final testData = <Section>[
     unit: 1,
     index: 4,
     title: 'Fire & extinguishers',
-    colorArgb: const Color(0xFFFC7E44).value,
+    colorArgb: const Color(0xFFFC7E44).toARGB32(),
     // purple
     challenges: [
       Challenge(
@@ -333,7 +332,7 @@ final testData = <Section>[
     unit: 1,
     index: 5,
     title: 'Engine checks & MOB',
-    colorArgb: const Color(0xFF845EC2).value,
+    colorArgb: const Color(0xFF845EC2).toARGB32(),
     // red
     challenges: [
       Challenge(

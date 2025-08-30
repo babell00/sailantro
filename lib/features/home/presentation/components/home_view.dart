@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:lottie/lottie.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
-import '../../domain/models/course.dart';
+import '../../domain/entities/course.dart';
 import '../components/current_section_widget.dart';
 import '../components/section_widget.dart';
 
@@ -186,7 +186,7 @@ class HomeContentList extends StatelessWidget {
           final secIdx = index - 1;
           return buildItem(secIdx);
         },
-        separatorBuilder: (_, __) => const SizedBox(height: 8.0),
+        separatorBuilder: (_, _) => const SizedBox(height: 8.0),
         padding: const EdgeInsets.only(bottom: 360.0, left: 16.0, right: 16.0),
       ),
     );
@@ -219,38 +219,34 @@ class HomeBottomNav extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      // decoration: const BoxDecoration(border: Border(top: BorderSide(color: Color(
-      //     0xFFC7F5F8)))),
-      child: BottomNavigationBar(
-        backgroundColor: Theme.of(context).colorScheme.surface,
-        elevation: 0,
-        showSelectedLabels: false,
-        showUnselectedLabels: false,
-        type: BottomNavigationBarType.fixed,
-        items: [
-          BottomNavigationBarItem(
-            icon: SvgPicture.asset('assets/svg/lighthouse.svg', width: 32, height: 32),
-            label: '',
-          ),
-          BottomNavigationBarItem(
-            icon: SvgPicture.asset('assets/svg/helm.svg', width: 32, height: 32),
-            label: '',
-          ),
-          BottomNavigationBarItem(
-            icon: SvgPicture.asset('assets/svg/trophy.svg', width: 32, height: 32),
-            label: '',
-          ),
-          BottomNavigationBarItem(
-            icon: SvgPicture.asset('assets/svg/treasure.svg', width: 32, height: 32),
-            label: '',
-          ),
-          BottomNavigationBarItem(
-            icon: SvgPicture.asset('assets/svg/pirate.svg', width: 32, height: 32),
-            label: '',
-          ),
-        ],
-      ),
+    return BottomNavigationBar(
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      elevation: 0,
+      showSelectedLabels: false,
+      showUnselectedLabels: false,
+      type: BottomNavigationBarType.fixed,
+      items: [
+        BottomNavigationBarItem(
+          icon: SvgPicture.asset('assets/svg/lighthouse.svg', width: 32, height: 32),
+          label: '',
+        ),
+        BottomNavigationBarItem(
+          icon: SvgPicture.asset('assets/svg/helm.svg', width: 32, height: 32),
+          label: '',
+        ),
+        BottomNavigationBarItem(
+          icon: SvgPicture.asset('assets/svg/trophy.svg', width: 32, height: 32),
+          label: '',
+        ),
+        BottomNavigationBarItem(
+          icon: SvgPicture.asset('assets/svg/treasure.svg', width: 32, height: 32),
+          label: '',
+        ),
+        BottomNavigationBarItem(
+          icon: SvgPicture.asset('assets/svg/pirate.svg', width: 32, height: 32),
+          label: '',
+        ),
+      ],
     );
   }
 }

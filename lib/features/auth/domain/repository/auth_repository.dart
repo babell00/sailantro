@@ -1,4 +1,4 @@
-import 'package:sailantro/features/auth/domain/models/app_user.dart';
+import 'package:sailantro/features/auth/domain/entities/app_user.dart';
 
 abstract class AuthRepository {
   Future<AppUser?> loginWithEmailPassword(String email, String password);

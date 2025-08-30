@@ -1,5 +1,4 @@
-import '../../domain/models/course.dart';
-import '../../domain/repository/course_repository.dart';
+import '../../domain/entities/course.dart';
 
 abstract class CourseState {}
 class CourseInitial extends CourseState {}

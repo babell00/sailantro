@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:sailantro/features/auth/domain/models/app_user.dart';
+import 'package:sailantro/features/auth/domain/entities/app_user.dart';
 import 'package:sailantro/features/auth/domain/repository/auth_repository.dart';
 import 'package:sailantro/features/auth/presentation/cubits/auth_state.dart';
 import '../../domain/errors/auth_failure.dart';

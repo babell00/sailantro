@@ -1,5 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:sailantro/features/auth/domain/models/app_user.dart';
+import 'package:sailantro/features/auth/domain/entities/app_user.dart';
 import 'package:sailantro/features/auth/domain/repository/auth_repository.dart';
 
 import 'firebase_auth_error_mapper.dart';

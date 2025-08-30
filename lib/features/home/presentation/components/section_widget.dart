@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:sailantro/core/utils/color_ext.dart';
 import 'package:sailantro/features/home/presentation/components/section_title_widget.dart';
-import '../../domain/models/section.dart';
+import '../../domain/entities/section.dart';
 import 'challenge_chip.dart';
 
 class SectionWidget extends StatelessWidget {

@@ -2,8 +2,8 @@ import 'dart:math' as math;
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import '../../domain/models/challenge.dart';
-import '../../domain/models/section.dart';
+import '../../domain/entities/challenge.dart';
+import '../../domain/entities/section.dart';
 import '../utils/path_layout.dart';
 
 class ChallengeChip extends StatelessWidget {
