@@ -1,17 +1,21 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:lottie/lottie.dart';
+import 'package:sailantro/features/home/domain/entities/course.dart';
+import 'package:sailantro/features/home/presentation/components/current_section_widget.dart';
+import 'package:sailantro/features/home/presentation/components/section_widget.dart';
+import 'package:sailantro/features/progress/presentation/cubit/progress_cubit.dart';
+import 'package:sailantro/features/progress/presentation/cubit/progress_state.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
-import '../../domain/entities/course.dart';
-import '../components/current_section_widget.dart';
-import '../components/section_widget.dart';
 
 const double _headerHeight = 35.0;
 const double _headerTopPadding = 8.0;
 
 class HomeView extends StatefulWidget {
   final Course course;
+
   const HomeView({super.key, required this.course});
 
   @override
@@ -29,12 +33,16 @@ class _HomeViewState extends State<HomeView> {
   void initState() {
     super.initState();
     _waveStarts = _computeWaveStarts(widget.course);
-    itemPositionsListener.itemPositions.addListener(_updateCurrentSectionFromVisibleItems);
+    itemPositionsListener.itemPositions.addListener(
+      _updateCurrentSectionFromVisibleItems,
+    );
   }
 
   @override
   void dispose() {
-    itemPositionsListener.itemPositions.removeListener(_updateCurrentSectionFromVisibleItems);
+    itemPositionsListener.itemPositions.removeListener(
+      _updateCurrentSectionFromVisibleItems,
+    );
     super.dispose();
   }
 
@@ -53,7 +61,8 @@ class _HomeViewState extends State<HomeView> {
     if (positions.isEmpty || !mounted) return;
 
     final screenHeight = MediaQuery.of(context).size.height;
-    final headerBottomFraction = (_headerTopPadding + _headerHeight) / screenHeight;
+    final headerBottomFraction =
+        (_headerTopPadding + _headerHeight) / screenHeight;
 
     int candidateIndex = 1; // 0 is spacer
     for (final pos in positions) {
@@ -62,7 +71,10 @@ class _HomeViewState extends State<HomeView> {
         candidateIndex = pos.index;
       }
     }
-    final newSection = (candidateIndex - 1).clamp(0, widget.course.sections.length - 1);
+    final newSection = (candidateIndex - 1).clamp(
+      0,
+      widget.course.sections.length - 1,
+    );
     if (newSection != iCurrentSection) {
       setState(() => iCurrentSection = newSection);
     }
@@ -78,27 +90,49 @@ class _HomeViewState extends State<HomeView> {
         courseName: widget.course.name,
         section: widget.course.sections[iCurrentSection],
       ),
-      content: HomeContentList(
-        headerHeight: _headerHeight,
-        headerTopPadding: _headerTopPadding,
-        sectionCount: widget.course.sections.length,
-        buildItem: (secIdx) => SectionWidget(
-          section: widget.course.sections[secIdx],
-          waveStartIndex: _waveStarts[secIdx],
-        ),
-        itemScrollController: itemScrollController,
-        itemPositionsListener: itemPositionsListener,
+      content: BlocBuilder<ProgressCubit, ProgressState>(
+        builder: (BuildContext context, pstate) {
+          if (pstate.loading) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          final completed = pstate.completedChallengeIds;
+          final cubit = context.read<ProgressCubit>();
+
+
+          return HomeContentList(
+            headerHeight: _headerHeight,
+            headerTopPadding: _headerTopPadding,
+            sectionCount: widget.course.sections.length,
+            buildItem: (secIdx) {
+              final section = widget.course.sections[secIdx];
+              final pct = pstate.sections[section.id]?.percent ?? 0.0;
+
+              return SectionWidget(
+                section: section,
+                waveStartIndex: _waveStarts[secIdx],
+                sectionProgressPercent: pct,
+                challengeStageOf: (ch) => cubit.challengeStage(section, ch, completed),
+                challengePercentOf: cubit.challengePercent,
+              );
+            },
+            itemScrollController: itemScrollController,
+            itemPositionsListener: itemPositionsListener,
+          );
+        },
       ),
     );
   }
 }
 
-/* ========================= SUB-WIDGETS ========================= */
-
 class HomeTopBar extends StatelessWidget implements PreferredSizeWidget {
   final VoidCallback onJumpToExample;
   final VoidCallback onLogout;
-  const HomeTopBar({super.key, required this.onJumpToExample, required this.onLogout});
+
+  const HomeTopBar({
+    super.key,
+    required this.onJumpToExample,
+    required this.onLogout,
+  });
 
   @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
@@ -110,7 +144,10 @@ class HomeTopBar extends StatelessWidget implements PreferredSizeWidget {
       backgroundColor: Theme.of(context).colorScheme.surface,
       elevation: 0,
       actions: [
-        IconButton(onPressed: onJumpToExample, icon: const Icon(Icons.arrow_downward)),
+        IconButton(
+          onPressed: onJumpToExample,
+          icon: const Icon(Icons.arrow_downward),
+        ),
         IconButton(onPressed: onLogout, icon: const Icon(Icons.logout)),
       ],
     );
@@ -136,7 +173,7 @@ class HomeBackground extends StatelessWidget {
         child: ImageFiltered(
           imageFilter: ImageFilter.blur(sigmaX: blurSigma, sigmaY: blurSigma),
           child: Opacity(
-            opacity:  opacity,
+            opacity: opacity,
             child: Semantics(
               label: 'Animated sailing water background',
               child: Lottie.asset(
@@ -196,6 +233,7 @@ class HomeContentList extends StatelessWidget {
 class HomePinnedHeader extends StatelessWidget {
   final double headerTopPadding;
   final Widget child;
+
   const HomePinnedHeader({
     super.key,
 
@@ -227,7 +265,11 @@ class HomeBottomNav extends StatelessWidget {
       type: BottomNavigationBarType.fixed,
       items: [
         BottomNavigationBarItem(
-          icon: SvgPicture.asset('assets/svg/lighthouse.svg', width: 32, height: 32),
+          icon: SvgPicture.asset(
+            'assets/svg/lighthouse.svg',
+            width: 32,
+            height: 32,
+          ),
           label: '',
         ),
         BottomNavigationBarItem(
@@ -235,21 +277,34 @@ class HomeBottomNav extends StatelessWidget {
           label: '',
         ),
         BottomNavigationBarItem(
-          icon: SvgPicture.asset('assets/svg/trophy.svg', width: 32, height: 32),
+          icon: SvgPicture.asset(
+            'assets/svg/trophy.svg',
+            width: 32,
+            height: 32,
+          ),
           label: '',
         ),
         BottomNavigationBarItem(
-          icon: SvgPicture.asset('assets/svg/treasure.svg', width: 32, height: 32),
+          icon: SvgPicture.asset(
+            'assets/svg/treasure.svg',
+            width: 32,
+            height: 32,
+          ),
           label: '',
         ),
         BottomNavigationBarItem(
-          icon: SvgPicture.asset('assets/svg/pirate.svg', width: 32, height: 32),
+          icon: SvgPicture.asset(
+            'assets/svg/pirate.svg',
+            width: 32,
+            height: 32,
+          ),
           label: '',
         ),
       ],
     );
   }
 }
+
 class HomeScene extends StatelessWidget {
   final double headerTopPadding;
   final double headerHeight;

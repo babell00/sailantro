@@ -100,7 +100,7 @@ class AppRouter {
 }
 import 'package:sailantro/features/home/data/test_data.dart';
 
-import '../domain/models/course.dart';
+import '../domain/entities/course.dart';
 import '../domain/repository/course_repository.dart';
 
 class MockCourseRepository implements CourseRepository {
@@ -111,11 +111,10 @@ class MockCourseRepository implements CourseRepository {
   }
 }import 'dart:ui';
 
-import '../../../themes/light_mode.dart';
-import '../domain/models/challenge.dart';
-import '../domain/models/course.dart';
-import '../domain/models/question.dart';
-import '../domain/models/section.dart';
+import '../domain/entities/challenge.dart';
+import '../domain/entities/course.dart';
+import '../domain/entities/question.dart';
+import '../domain/entities/section.dart';
 
 final testCourse = Course(
     id: 'ray_day_skipper_theory',
@@ -129,7 +128,7 @@ final testData = <Section>[
     unit: 1,
     index: 1,
     title: 'Safety equipment',
-    colorArgb: const Color(0xFF4ECDC4).value,
+    colorArgb: const Color(0xFF4ECDC4).toARGB32(),
     challenges: [
       Challenge(
         id: 'ch_safety_intro',
@@ -219,7 +218,7 @@ final testData = <Section>[
     unit: 1,
     index: 2,
     title: 'Distress signals',
-    colorArgb: const Color(0xFFD65DB1).value,
+    colorArgb: const Color(0xFFD65DB1).toARGB32(),
     challenges: [
       Challenge(
         id: 'ch_flares',
@@ -293,7 +292,7 @@ final testData = <Section>[
     unit: 1,
     index: 3,
     title: 'Lifejackets',
-    colorArgb: const Color(0xFF20BF55).value,
+    colorArgb: const Color(0xFF20BF55).toARGB32(),
     // green
     challenges: [
       Challenge(
@@ -371,7 +370,7 @@ final testData = <Section>[
     unit: 1,
     index: 4,
     title: 'Fire & extinguishers',
-    colorArgb: const Color(0xFFFC7E44).value,
+    colorArgb: const Color(0xFFFC7E44).toARGB32(),
     // purple
     challenges: [
       Challenge(
@@ -444,7 +443,7 @@ final testData = <Section>[
     unit: 1,
     index: 5,
     title: 'Engine checks & MOB',
-    colorArgb: const Color(0xFF845EC2).value,
+    colorArgb: const Color(0xFF845EC2).toARGB32(),
     // red
     challenges: [
       Challenge(
@@ -516,11 +515,11 @@ final testData = <Section>[
     ],
   ),
 ];
-import '../models/course.dart';
+import '../entities/course.dart';
 
 abstract class CourseRepository {
   Future<Course> getCourse(String courseId);
-}import 'package:sailantro/features/home/domain/models/section.dart';
+}import 'package:sailantro/features/home/domain/entities/section.dart';
 
 class Course {
   final String id;
@@ -601,8 +600,7 @@ class Challenge {
 class SectionTheme {
   final Color color;
   const SectionTheme(this.color);
-}import '../../domain/models/course.dart';
-import '../../domain/repository/course_repository.dart';
+}import '../../domain/entities/course.dart';
 
 abstract class CourseState {}
 class CourseInitial extends CourseState {}
@@ -625,7 +623,18 @@ import 'course_state.dart';
 
 class CourseCubit extends Cubit<CourseState> {
   final CourseRepository repository;
-  CourseCubit({required this.repository}) : super(CourseInitial());
+  final String courseId;
+
+  CourseCubit({
+    required this.repository,
+    required this.courseId,
+  }) : super(CourseLoading()) {
+    _init();
+  }
+
+  void _init() {
+    loadCourse(courseId);
+  }
 
   Future<void> loadCourse(String id) async {
     emit(CourseLoading());
@@ -652,18 +661,22 @@ class PathLayout {
 }
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:lottie/lottie.dart';
+import 'package:sailantro/features/home/domain/entities/course.dart';
+import 'package:sailantro/features/home/presentation/components/current_section_widget.dart';
+import 'package:sailantro/features/home/presentation/components/section_widget.dart';
+import 'package:sailantro/features/progress/presentation/cubit/progress_cubit.dart';
+import 'package:sailantro/features/progress/presentation/cubit/progress_state.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
-import '../../domain/models/course.dart';
-import '../components/current_section_widget.dart';
-import '../components/section_widget.dart';
 
 const double _headerHeight = 35.0;
 const double _headerTopPadding = 8.0;
 
 class HomeView extends StatefulWidget {
   final Course course;
+
   const HomeView({super.key, required this.course});
 
   @override
@@ -681,12 +694,16 @@ class _HomeViewState extends State<HomeView> {
   void initState() {
     super.initState();
     _waveStarts = _computeWaveStarts(widget.course);
-    itemPositionsListener.itemPositions.addListener(_updateCurrentSectionFromVisibleItems);
+    itemPositionsListener.itemPositions.addListener(
+      _updateCurrentSectionFromVisibleItems,
+    );
   }
 
   @override
   void dispose() {
-    itemPositionsListener.itemPositions.removeListener(_updateCurrentSectionFromVisibleItems);
+    itemPositionsListener.itemPositions.removeListener(
+      _updateCurrentSectionFromVisibleItems,
+    );
     super.dispose();
   }
 
@@ -705,7 +722,8 @@ class _HomeViewState extends State<HomeView> {
     if (positions.isEmpty || !mounted) return;
 
     final screenHeight = MediaQuery.of(context).size.height;
-    final headerBottomFraction = (_headerTopPadding + _headerHeight) / screenHeight;
+    final headerBottomFraction =
+        (_headerTopPadding + _headerHeight) / screenHeight;
 
     int candidateIndex = 1; // 0 is spacer
     for (final pos in positions) {
@@ -714,7 +732,10 @@ class _HomeViewState extends State<HomeView> {
         candidateIndex = pos.index;
       }
     }
-    final newSection = (candidateIndex - 1).clamp(0, widget.course.sections.length - 1);
+    final newSection = (candidateIndex - 1).clamp(
+      0,
+      widget.course.sections.length - 1,
+    );
     if (newSection != iCurrentSection) {
       setState(() => iCurrentSection = newSection);
     }
@@ -730,27 +751,49 @@ class _HomeViewState extends State<HomeView> {
         courseName: widget.course.name,
         section: widget.course.sections[iCurrentSection],
       ),
-      content: HomeContentList(
-        headerHeight: _headerHeight,
-        headerTopPadding: _headerTopPadding,
-        sectionCount: widget.course.sections.length,
-        buildItem: (secIdx) => SectionWidget(
-          section: widget.course.sections[secIdx],
-          waveStartIndex: _waveStarts[secIdx],
-        ),
-        itemScrollController: itemScrollController,
-        itemPositionsListener: itemPositionsListener,
+      content: BlocBuilder<ProgressCubit, ProgressState>(
+        builder: (BuildContext context, pstate) {
+          if (pstate.loading) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          final completed = pstate.completedChallengeIds;
+
+
+          return HomeContentList(
+            headerHeight: _headerHeight,
+            headerTopPadding: _headerTopPadding,
+            sectionCount: widget.course.sections.length,
+            buildItem: (secIdx) {
+              final section = widget.course.sections[secIdx];
+              final pct = pstate.sections[section.id]?.percent ?? 0.0;
+
+              return SectionWidget(
+                section: section,
+                waveStartIndex: _waveStarts[secIdx],
+                sectionProgressPercent: pct,
+                isChallengeCompleted: (cid) => completed.contains(cid),
+                isChallengeUnlocked: (challenge) =>
+                    context.read<ProgressCubit>().isUnlocked(section, challenge, completed),
+              );
+            },
+            itemScrollController: itemScrollController,
+            itemPositionsListener: itemPositionsListener,
+          );
+        },
       ),
     );
   }
 }
 
-/* ========================= SUB-WIDGETS ========================= */
-
 class HomeTopBar extends StatelessWidget implements PreferredSizeWidget {
   final VoidCallback onJumpToExample;
   final VoidCallback onLogout;
-  const HomeTopBar({super.key, required this.onJumpToExample, required this.onLogout});
+
+  const HomeTopBar({
+    super.key,
+    required this.onJumpToExample,
+    required this.onLogout,
+  });
 
   @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
@@ -762,7 +805,10 @@ class HomeTopBar extends StatelessWidget implements PreferredSizeWidget {
       backgroundColor: Theme.of(context).colorScheme.surface,
       elevation: 0,
       actions: [
-        IconButton(onPressed: onJumpToExample, icon: const Icon(Icons.arrow_downward)),
+        IconButton(
+          onPressed: onJumpToExample,
+          icon: const Icon(Icons.arrow_downward),
+        ),
         IconButton(onPressed: onLogout, icon: const Icon(Icons.logout)),
       ],
     );
@@ -788,7 +834,7 @@ class HomeBackground extends StatelessWidget {
         child: ImageFiltered(
           imageFilter: ImageFilter.blur(sigmaX: blurSigma, sigmaY: blurSigma),
           child: Opacity(
-            opacity:  opacity,
+            opacity: opacity,
             child: Semantics(
               label: 'Animated sailing water background',
               child: Lottie.asset(
@@ -838,7 +884,7 @@ class HomeContentList extends StatelessWidget {
           final secIdx = index - 1;
           return buildItem(secIdx);
         },
-        separatorBuilder: (_, __) => const SizedBox(height: 8.0),
+        separatorBuilder: (_, _) => const SizedBox(height: 8.0),
         padding: const EdgeInsets.only(bottom: 360.0, left: 16.0, right: 16.0),
       ),
     );
@@ -848,6 +894,7 @@ class HomeContentList extends StatelessWidget {
 class HomePinnedHeader extends StatelessWidget {
   final double headerTopPadding;
   final Widget child;
+
   const HomePinnedHeader({
     super.key,
 
@@ -871,41 +918,54 @@ class HomeBottomNav extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: const BoxDecoration(border: Border(top: BorderSide(color: Color(
-          0xFFC7F5F8)))),
-      child: BottomNavigationBar(
-        backgroundColor: Theme.of(context).colorScheme.surface,
-        elevation: 0,
-        showSelectedLabels: false,
-        showUnselectedLabels: false,
-        type: BottomNavigationBarType.fixed,
-        items: [
-          BottomNavigationBarItem(
-            icon: SvgPicture.asset('assets/svg/lighthouse.svg', width: 32, height: 32),
-            label: '',
+    return BottomNavigationBar(
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      elevation: 0,
+      showSelectedLabels: false,
+      showUnselectedLabels: false,
+      type: BottomNavigationBarType.fixed,
+      items: [
+        BottomNavigationBarItem(
+          icon: SvgPicture.asset(
+            'assets/svg/lighthouse.svg',
+            width: 32,
+            height: 32,
           ),
-          BottomNavigationBarItem(
-            icon: SvgPicture.asset('assets/svg/helm.svg', width: 32, height: 32),
-            label: '',
+          label: '',
+        ),
+        BottomNavigationBarItem(
+          icon: SvgPicture.asset('assets/svg/helm.svg', width: 32, height: 32),
+          label: '',
+        ),
+        BottomNavigationBarItem(
+          icon: SvgPicture.asset(
+            'assets/svg/trophy.svg',
+            width: 32,
+            height: 32,
           ),
-          BottomNavigationBarItem(
-            icon: SvgPicture.asset('assets/svg/trophy.svg', width: 32, height: 32),
-            label: '',
+          label: '',
+        ),
+        BottomNavigationBarItem(
+          icon: SvgPicture.asset(
+            'assets/svg/treasure.svg',
+            width: 32,
+            height: 32,
           ),
-          BottomNavigationBarItem(
-            icon: SvgPicture.asset('assets/svg/treasure.svg', width: 32, height: 32),
-            label: '',
+          label: '',
+        ),
+        BottomNavigationBarItem(
+          icon: SvgPicture.asset(
+            'assets/svg/pirate.svg',
+            width: 32,
+            height: 32,
           ),
-          BottomNavigationBarItem(
-            icon: SvgPicture.asset('assets/svg/pirate.svg', width: 32, height: 32),
-            label: '',
-          ),
-        ],
-      ),
+          label: '',
+        ),
+      ],
     );
   }
 }
+
 class HomeScene extends StatelessWidget {
   final double headerTopPadding;
   final double headerHeight;
@@ -927,7 +987,7 @@ class HomeScene extends StatelessWidget {
     return SafeArea(
       child: Stack(
         children: [
-          HomeBackground(asset: backgroundAsset, blurSigma: 9, opacity: 0.35),
+          // HomeBackground(asset: backgroundAsset, blurSigma: 9, opacity: 0.35),
           Padding(
             padding: EdgeInsets.only(top: headerTopPadding + headerHeight + 8),
             child: content,
@@ -942,24 +1002,21 @@ import 'dart:math' as math;
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import '../../domain/models/challenge.dart';
-import '../../domain/models/section.dart';
+import '../../domain/entities/challenge.dart';
+import '../../domain/entities/section.dart';
 import '../utils/path_layout.dart';
 
 class ChallengeChip extends StatelessWidget {
   final Challenge challenge;
   final Section section;
 
-  /// IMPORTANT: This must be a GLOBAL index (not 0..n per section).
   final int visualIndex;
-  final Color bgColor;
 
   const ChallengeChip({
     super.key,
     required this.challenge,
     required this.section,
     required this.visualIndex,
-    required this.bgColor,
   });
 
   @override
@@ -1068,7 +1125,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:sailantro/core/utils/color_ext.dart';
 
-import '../../domain/models/section.dart';
+import '../../domain/entities/section.dart';
 
 class CurrentSectionWidget extends StatelessWidget {
   final String courseName;
@@ -1084,13 +1141,14 @@ class CurrentSectionWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final color = section.colorArgb.toColor();
 
-    return Container(
+    return AnimatedContainer(
       margin: const EdgeInsets.symmetric(horizontal: 16.0),
       decoration: BoxDecoration(
         color: color,
         borderRadius: BorderRadius.circular(16.0),
         border: Border(bottom: BorderSide(color: color, width: 4.0)),
       ),
+      duration: Duration(milliseconds: 580),
       child: IntrinsicHeight(
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1123,9 +1181,9 @@ class CurrentSectionWidget extends StatelessWidget {
             ),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 24.0),
-              decoration: BoxDecoration(
-                border: Border(left: BorderSide(color: color, width: 2.0)),
-              ),
+              // decoration: BoxDecoration(
+              //   border: Border(left: BorderSide(color: color, width: 2.0)),
+              // ),
               child: Center(
                 child: SvgPicture.asset('assets/svg/theory.svg', width: 42, height: 42),
               ),
@@ -1137,30 +1195,33 @@ class CurrentSectionWidget extends StatelessWidget {
   }
 }
 import 'package:flutter/material.dart';
-import 'package:sailantro/core/utils/color_ext.dart';
+import 'package:sailantro/features/home/domain/entities/challenge.dart';
+import 'package:sailantro/features/home/domain/entities/section.dart';
+import 'package:sailantro/features/home/presentation/components/challenge_chip.dart';
 import 'package:sailantro/features/home/presentation/components/section_title_widget.dart';
-import '../../domain/models/section.dart';
-import 'challenge_chip.dart';
 
 class SectionWidget extends StatelessWidget {
   final Section section;
-
-  /// Where the wave should start for this section.
-  /// Pass a GLOBAL running index from the page.
   final int waveStartIndex;
+  final double? sectionProgressPercent;
+  final bool Function(String challengeId)? isChallengeCompleted;
+  final bool Function(Challenge challenge)? isChallengeUnlocked;
 
   const SectionWidget({
     super.key,
     required this.section,
     required this.waveStartIndex,
+    this.sectionProgressPercent,
+    this.isChallengeCompleted,
+    this.isChallengeUnlocked,
   });
 
   @override
   Widget build(BuildContext context) {
-    final color = section.colorArgb.toColor();
+    final pct = sectionProgressPercent ?? 0.0;
 
     return Column(
-      mainAxisSize: MainAxisSize.min,
+      // mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         SectionTitleWidget(title: section.title),
@@ -1169,8 +1230,7 @@ class SectionWidget extends StatelessWidget {
           ChallengeChip(
             challenge: section.challenges[i],
             section: section,
-            visualIndex: waveStartIndex + i, // GLOBAL index
-            bgColor: color,
+            visualIndex: waveStartIndex + i,
           ),
       ],
     );
@@ -1279,9 +1339,10 @@ class ChestWidget extends StatelessWidget {
 // }
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../components/home_view.dart';
-import '../cubits/course_cubit.dart';
-import '../cubits/course_state.dart';
+import 'package:sailantro/features/home/presentation/components/home_view.dart';
+import 'package:sailantro/features/home/presentation/cubits/course_cubit.dart';
+import 'package:sailantro/features/home/presentation/cubits/course_state.dart';
+
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -1306,8 +1367,310 @@ class HomePage extends StatelessWidget {
     );
   }
 }
+import 'dart:async';
+
+import 'package:flutter/foundation.dart';
+import 'package:sailantro/features/home/domain/entities/challenge.dart';
+import 'package:sailantro/features/home/domain/entities/course.dart';
+import 'package:sailantro/features/home/domain/entities/section.dart';
+import 'package:sailantro/features/home/domain/repository/course_repository.dart';
+import 'package:sailantro/features/progress/domain/entities/progress_types.dart';
+import 'package:sailantro/features/progress/domain/entities/section_progress.dart';
+import 'package:sailantro/features/progress/domain/repositories/progress_repository.dart';
+
+
+
+class MockProgressRepository implements ProgressRepository {
+  final CourseRepository courseRepo;
+
+  // In-memory: questionId -> status
+  final Map<String, QuestionStatus> _qStatus = {};
+
+  // per-course stream
+  final Map<String, StreamController<ProgressSnapshot>> _controllers = {};
+
+  MockProgressRepository({required this.courseRepo});
+
+  @override
+  QuestionStatus statusOf(String questionId) =>
+      _qStatus[questionId] ?? QuestionStatus.notStarted;
+
+  @override
+  Stream<ProgressSnapshot> watchCourse(String courseId) async* {
+    final ctrl = _controllers.putIfAbsent(
+      courseId,
+          () => StreamController<ProgressSnapshot>.broadcast(sync: true),
+    );
+    () async {
+      try {
+        final snap = await _buildSnapshot(courseId);
+        ctrl.add(snap);
+      } catch (e, st) {
+        debugPrint('ProgressRepo _buildSnapshot failed: $e\n$st');
+        ctrl.add(const ProgressSnapshot(
+          courseId: 'unknown',
+          sections: {},
+          completedChallengeIds: {},
+          coursePercent: 0.0,
+        ));
+      }
+    }();
+    yield* ctrl.stream;
+  }
+
+  @override
+  Future<void> recordAnswer({
+    required String courseId,
+    required String sectionId,
+    required String challengeId,
+    required String questionId,
+    required bool correct,
+  }) async {
+    final prev = statusOf(questionId);
+
+    // First correct -> correct; next correct -> mastered; wrong -> started (never below started)
+    final next = correct
+        ? ((prev == QuestionStatus.correct || prev == QuestionStatus.mastered)
+        ? QuestionStatus.mastered
+        : QuestionStatus.correct)
+        : (prev == QuestionStatus.notStarted ? QuestionStatus.started : prev);
+
+    _qStatus[questionId] = next;
+
+    final snap = await _buildSnapshot(courseId);
+    _controllers[courseId]?.add(snap);
+  }
+
+  Future<ProgressSnapshot> _buildSnapshot(String courseId) async {
+    final Course course = await courseRepo.getCourse(courseId);
+
+    final sections = <String, SectionProgress>{};
+    final completedChallengeIds = <String>{};
+    int totalChallenges = 0, doneChallenges = 0;
+
+    for (final Section s in course.sections) {
+      int sectionDone = 0;
+      for (final Challenge c in s.challenges) {
+        final allDone = c.questions.every((q) => statusOf(q.id).isDone);
+        if (allDone) {
+          sectionDone++;
+          completedChallengeIds.add(c.id);
+        }
+      }
+
+      sections[s.id] = SectionProgress(
+        sectionId: s.id,
+        completedChallenges: sectionDone,
+        totalChallenges: s.challenges.length,
+      );
+
+      totalChallenges += s.challenges.length;
+      doneChallenges  += sectionDone;
+    }
+
+    final percent = totalChallenges == 0 ? 0.0 : doneChallenges / totalChallenges;
+
+    return ProgressSnapshot(
+      courseId: course.id,
+      sections: sections,
+      completedChallengeIds: completedChallengeIds,
+      coursePercent: percent,
+    );
+  }
+
+
+}
+import '../entities/section_progress.dart';
+import '../entities/progress_types.dart';
+
+class ProgressSnapshot {
+  final String courseId;
+  final Map<String, SectionProgress> sections; // sectionId -> progress
+  final Set<String> completedChallengeIds;     // challengeIds
+  final double coursePercent;                  // 0..1
+
+  const ProgressSnapshot({
+    required this.courseId,
+    required this.sections,
+    required this.completedChallengeIds,
+    required this.coursePercent,
+  });
+}
+
+abstract class ProgressRepository {
+  Stream<ProgressSnapshot> watchCourse(String courseId);
+
+  Future<void> recordAnswer({
+    required String courseId,
+    required String sectionId,
+    required String challengeId,
+    required String questionId,
+    required bool correct,
+  });
+
+  QuestionStatus statusOf(String questionId);
+}
+import '../repositories/progress_repository.dart';
+
+class RecordAnswer {
+  final ProgressRepository repo;
+  RecordAnswer(this.repo);
+
+  Future<void> call({
+    required String courseId,
+    required String sectionId,
+    required String challengeId,
+    required String questionId,
+    required bool correct,
+  }) {
+    return repo.recordAnswer(
+      courseId: courseId,
+      sectionId: sectionId,
+      challengeId: challengeId,
+      questionId: questionId,
+      correct: correct,
+    );
+  }
+}
+import '../repositories/progress_repository.dart';
+
+class WatchCourseProgress {
+  final ProgressRepository repo;
+  WatchCourseProgress(this.repo);
+
+  Stream<ProgressSnapshot> call(String courseId) => repo.watchCourse(courseId);
+}
+enum QuestionStatus { notStarted, started, correct, mastered }
+
+extension QuestionStatusX on QuestionStatus {
+  bool get isDone => index >= QuestionStatus.correct.index;
+}
+class SectionProgress {
+  final String sectionId;
+  final int completedChallenges;
+  final int totalChallenges;
+
+  const SectionProgress({
+    required this.sectionId,
+    required this.completedChallenges,
+    required this.totalChallenges,
+  });
+
+  double get percent =>
+      totalChallenges == 0 ? 0.0 : completedChallenges / totalChallenges;
+}
+import 'package:sailantro/features/progress/domain/entities/section_progress.dart';
+
+class ProgressState {
+  final String? courseId;
+  final Map<String, SectionProgress> sections;
+  final Set<String> completedChallengeIds;
+  final double coursePercent;
+  final bool loading;
+
+  const ProgressState({
+    required this.courseId,
+    required this.sections,
+    required this.completedChallengeIds,
+    required this.coursePercent,
+    required this.loading,
+  });
+
+  const ProgressState.loading()
+      : courseId = null,
+        sections = const {},
+        completedChallengeIds = const {},
+        coursePercent = 0.0,
+        loading = true;
+
+  factory ProgressState.loaded({
+    required String courseId,
+    required Map<String, SectionProgress> sections,
+    required Set<String> completedChallengeIds,
+    required double coursePercent,
+  }) {
+    return ProgressState(
+      courseId: courseId,
+      sections: sections,
+      completedChallengeIds: completedChallengeIds,
+      coursePercent: coursePercent,
+      loading: false,
+    );
+  }
+}
+import 'dart:async';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:sailantro/features/home/domain/entities/challenge.dart';
+import 'package:sailantro/features/home/domain/entities/section.dart';
+import 'package:sailantro/features/progress/domain/usecases/record_answer.dart';
+import 'package:sailantro/features/progress/domain/usecases/watch_course_progress.dart';
+import 'package:sailantro/features/progress/presentation/cubit/progress_state.dart';
+
+
+class ProgressCubit extends Cubit<ProgressState> {
+  final WatchCourseProgress watchCourse;
+  final RecordAnswer record;
+  final String courseId;
+
+  StreamSubscription? _sub;
+
+  ProgressCubit({
+    required this.watchCourse,
+    required this.record,
+    required this.courseId,
+  }) : super(const ProgressState.loading()) {
+    _listen();
+  }
+  // Future<void> loadCourse(String id) async {
+  //   emit(CourseLoading());
+  //   try {
+  //     final course = await repository.getCourse(id);
+  //     emit(CourseLoaded(course));
+  //   } catch (e) {
+  //     emit(CourseError("Failed to load course: $e"));
+  //   }
+  // }
+  void _listen() {
+    _sub?.cancel();
+    _sub = watchCourse(courseId).listen((snap) {
+      emit(ProgressState.loaded(
+        courseId: snap.courseId,
+        sections: snap.sections,
+        completedChallengeIds: snap.completedChallengeIds,
+        coursePercent: snap.coursePercent,
+      ));
+    });
+  }
+
+  Future<void> submitAnswer({
+    required String sectionId,
+    required String challengeId,
+    required String questionId,
+    required bool correct,
+  }) {
+    return record(
+      courseId: courseId,
+      sectionId: sectionId,
+      challengeId: challengeId,
+      questionId: questionId,
+      correct: correct,
+    );
+  }
+
+  bool isUnlocked(Section section, Challenge challenge, Set<String> completed) {
+    final prev = section.challenges.where((c) => c.order < challenge.order);
+    if (prev.isEmpty) return true;
+    return prev.every((c) => completed.contains(c.id));
+  }
+
+  @override
+  Future<void> close() async {
+    await _sub?.cancel();
+    return super.close();
+  }
+}
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:sailantro/features/auth/domain/models/app_user.dart';
+import 'package:sailantro/features/auth/domain/entities/app_user.dart';
 import 'package:sailantro/features/auth/domain/repository/auth_repository.dart';
 
 import 'firebase_auth_error_mapper.dart';
@@ -1452,7 +1815,7 @@ AuthFailure mapFirebaseAuthException(FirebaseAuthException e) {
       );
   }
 }
-import 'package:sailantro/features/auth/domain/models/app_user.dart';
+import 'package:sailantro/features/auth/domain/entities/app_user.dart';
 
 abstract class AuthRepository {
   Future<AppUser?> loginWithEmailPassword(String email, String password);
@@ -1461,6 +1824,15 @@ abstract class AuthRepository {
   Future<AppUser?> getCurrentUser();
   Future<void> sendPasswordResetEmail(String email);
   Future<void> deleteAccount();
+}
+class AuthFailure implements Exception {
+  final String message;     // safe, user-friendly
+  final String? code;       // optional: keep original code for logging/analytics
+
+  const AuthFailure(this.message, {this.code});
+
+  @override
+  String toString() => 'AuthFailure(code: $code, message: $message)';
 }
 class AppUser {
   final String uid;
@@ -1483,18 +1855,9 @@ class AppUser {
   factory AppUser.fromJson(Map<String, dynamic> jsonUser) {
     return AppUser(uid: jsonUser['uid'], email: jsonUser['email']);
   }
-}class AuthFailure implements Exception {
-  final String message;     // safe, user-friendly
-  final String? code;       // optional: keep original code for logging/analytics
-
-  const AuthFailure(this.message, {this.code});
-
-  @override
-  String toString() => 'AuthFailure(code: $code, message: $message)';
-}
-import 'package:flutter/foundation.dart';
+}import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:sailantro/features/auth/domain/models/app_user.dart';
+import 'package:sailantro/features/auth/domain/entities/app_user.dart';
 import 'package:sailantro/features/auth/domain/repository/auth_repository.dart';
 import 'package:sailantro/features/auth/presentation/cubits/auth_state.dart';
 import '../../domain/errors/auth_failure.dart';
@@ -1502,12 +1865,16 @@ import '../../domain/errors/auth_failure.dart';
 class AuthCubit extends Cubit<AuthState> {
   final AuthRepository authRepository;
   AppUser? _currentUser;
-
-  AuthCubit({required this.authRepository}) : super(AuthInitial());
-
   AppUser? get currentUser => _currentUser;
 
-  /// Called once on app start
+  AuthCubit({required this.authRepository}) : super(AuthInitial()){
+    _init();
+  }
+
+  void _init() {
+    checkAuth();
+  }
+
   Future<void> checkAuth() async {
     debugPrint('Checking current user auth status...');
     emit(AuthLoading());
@@ -1602,7 +1969,7 @@ class AuthCubit extends Cubit<AuthState> {
     }
   }
 }
-import 'package:sailantro/features/auth/domain/models/app_user.dart';
+import 'package:sailantro/features/auth/domain/entities/app_user.dart';
 
 abstract class AuthState{}
 class AuthInitial extends AuthState {}
@@ -2457,15 +2824,20 @@ class DefaultFirebaseOptions {
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:sailantro/core/router/app_router.dart';
 import 'package:sailantro/features/auth/data/firebase_auth_repository.dart';
 import 'package:sailantro/features/auth/presentation/cubits/auth_cubit.dart';
+import 'package:sailantro/features/home/data/mock_course_repository.dart';
+import 'package:sailantro/features/home/presentation/cubits/course_cubit.dart';
+import 'package:sailantro/features/progress/presentation/cubit/progress_cubit.dart';
+import 'package:sailantro/features/progress/data/mock_progress_repository.dart';
+import 'package:sailantro/features/progress/domain/usecases/record_answer.dart';
+import 'package:sailantro/features/progress/domain/usecases/watch_course_progress.dart';
 import 'package:sailantro/firebase_options.dart';
 import 'package:sailantro/themes/dark_mode.dart';
 import 'package:sailantro/themes/light_mode.dart';
 
-import 'core/router/app_router.dart';
-import 'features/home/data/mock_course_repository.dart';
-import 'features/home/presentation/cubits/course_cubit.dart';
+
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -2476,8 +2848,13 @@ void main() async {
 class MyApp extends StatelessWidget {
   MyApp({super.key});
 
-  final firebaseAuthRepo = FirebaseAuthRepository();
+  late final firebaseAuthRepo = FirebaseAuthRepository();
   final courseRepo = MockCourseRepository();
+  late final progressRepo = MockProgressRepository(courseRepo: courseRepo);
+  late final watchProgress = WatchCourseProgress(progressRepo);
+  late final recordAnswer  = RecordAnswer(progressRepo);
+
+  final courseId = 'ray_day_skipper_theory';
 
   @override
   Widget build(BuildContext context) {
@@ -2485,10 +2862,13 @@ class MyApp extends StatelessWidget {
       providers: [
         BlocProvider<AuthCubit>(
           create: (context) =>
-          AuthCubit(authRepository: firebaseAuthRepo)..checkAuth(),
+          AuthCubit(authRepository: firebaseAuthRepo),
         ),
         BlocProvider<CourseCubit>(
-          create: (_) => CourseCubit(repository: courseRepo)..loadCourse('ray_day_skipper_theory'),
+          create: (_) => CourseCubit(repository: courseRepo, courseId: courseId),
+        ),
+        BlocProvider<ProgressCubit>(
+          create: (_) => ProgressCubit(watchCourse: watchProgress, record: recordAnswer, courseId: courseId,),
         ),
       ],
       child: Builder(

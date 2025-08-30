@@ -5,7 +5,18 @@ import 'course_state.dart';
 
 class CourseCubit extends Cubit<CourseState> {
   final CourseRepository repository;
-  CourseCubit({required this.repository}) : super(CourseInitial());
+  final String courseId;
+
+  CourseCubit({
+    required this.repository,
+    required this.courseId,
+  }) : super(CourseLoading()) {
+    _init();
+  }
+
+  void _init() {
+    loadCourse(courseId);
+  }
 
   Future<void> loadCourse(String id) async {
     emit(CourseLoading());

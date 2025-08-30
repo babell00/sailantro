@@ -8,12 +8,16 @@ import '../../domain/errors/auth_failure.dart';
 class AuthCubit extends Cubit<AuthState> {
   final AuthRepository authRepository;
   AppUser? _currentUser;
-
-  AuthCubit({required this.authRepository}) : super(AuthInitial());
-
   AppUser? get currentUser => _currentUser;
 
-  /// Called once on app start
+  AuthCubit({required this.authRepository}) : super(AuthInitial()){
+    _init();
+  }
+
+  void _init() {
+    checkAuth();
+  }
+
   Future<void> checkAuth() async {
     debugPrint('Checking current user auth status...');
     emit(AuthLoading());

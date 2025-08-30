@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../components/home_view.dart';
-import '../cubits/course_cubit.dart';
-import '../cubits/course_state.dart';
+import 'package:sailantro/features/home/presentation/components/home_view.dart';
+import 'package:sailantro/features/home/presentation/cubits/course_cubit.dart';
+import 'package:sailantro/features/home/presentation/cubits/course_state.dart';
+
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});

@@ -1,3 +1,4 @@
+// lib/features/home/presentation/components/challenge_chip.dart
 import 'dart:math' as math;
 import 'dart:ui';
 import 'package:flutter/material.dart';
@@ -5,21 +6,25 @@ import 'package:flutter_svg/svg.dart';
 import '../../domain/entities/challenge.dart';
 import '../../domain/entities/section.dart';
 import '../utils/path_layout.dart';
+import 'package:sailantro/features/progress/presentation/cubit/progress_cubit.dart'; // for ChallengeStage
 
 class ChallengeChip extends StatelessWidget {
   final Challenge challenge;
   final Section section;
 
-  /// IMPORTANT: This must be a GLOBAL index (not 0..n per section).
   final int visualIndex;
-  final Color bgColor;
+
+  // NEW:
+  final ChallengeStage stage;
+  final double percent; // 0..1
 
   const ChallengeChip({
     super.key,
     required this.challenge,
     required this.section,
     required this.visualIndex,
-    required this.bgColor,
+    required this.stage,     // NEW
+    required this.percent,   // NEW
   });
 
   @override
@@ -31,25 +36,105 @@ class ChallengeChip extends StatelessWidget {
       phase: -math.pi / 2,
     );
 
+    final style = _chipStyleForStage(context, stage);
+    final isLocked = stage == ChallengeStage.locked;
+
     return Container(
       margin: const EdgeInsets.only(bottom: 24.0),
       child: Transform.translate(
         offset: Offset(dx, 0),
-        child: DecoratedBox(
-          decoration: const BoxDecoration(
-            border: Border(bottom: BorderSide(color: Colors.white10, width: 6)),
-            borderRadius: BorderRadius.all(Radius.circular(36)),
-          ),
-          child: MySvgIconWithEffects(
-            assetPath: challenge.iconPath,
-            isDisabled: challenge.isLocked,
+        child: InkWell(
+          onTap: isLocked ? null : () { /* navigate to challenge */ },
+          borderRadius: const BorderRadius.all(Radius.circular(36)),
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: style.bg, // <- color the chip itself
+              border: Border(
+                bottom: BorderSide(color: style.border, width: 6),
+              ),
+              borderRadius: const BorderRadius.all(Radius.circular(36)),
+            ),
+            child: Stack(
+              children: [
+                // Optional inline progress fill when "started"
+                if (stage == ChallengeStage.started)
+                  Positioned.fill(
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: FractionallySizedBox(
+                        widthFactor: percent.clamp(0.0, 1.0),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: style.fg.withOpacity(0.10),
+                            borderRadius: const BorderRadius.all(Radius.circular(36)),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
 
+                // Icon (blurred/greyscale if locked)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  child: MySvgIconWithEffects(
+                    assetPath: challenge.iconPath,
+                    isDisabled: isLocked,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
     );
   }
 }
+
+class _ChipStyle {
+  final Color bg;
+  final Color fg;
+  final Color border;
+  const _ChipStyle({required this.bg, required this.fg, required this.border});
+}
+
+_ChipStyle _chipStyleForStage(BuildContext ctx, ChallengeStage stage) {
+  final cs = Theme.of(ctx).colorScheme;
+  final outline = Theme.of(ctx).dividerColor.withOpacity(0.22);
+
+  switch (stage) {
+    case ChallengeStage.locked:
+      return _ChipStyle(
+        bg: cs.surfaceVariant,
+        fg: cs.onSurfaceVariant,
+        border: outline,
+      );
+    case ChallengeStage.notStarted:
+      return _ChipStyle(
+        bg: cs.surface,
+        fg: cs.onSurface,
+        border: outline,
+      );
+    case ChallengeStage.started:
+      return _ChipStyle(
+        bg: cs.secondaryContainer,
+        fg: cs.onSecondaryContainer,
+        border: outline,
+      );
+    case ChallengeStage.correct:
+      return _ChipStyle(
+        bg: cs.primaryContainer,
+        fg: cs.onPrimaryContainer,
+        border: outline,
+      );
+    case ChallengeStage.mastered:
+      return _ChipStyle(
+        bg: cs.tertiaryContainer,
+        fg: cs.onTertiaryContainer,
+        border: outline,
+      );
+  }
+}
+
 
 class MySvgIconWithEffects extends StatelessWidget {
   final bool isDisabled;
